@@ -1,0 +1,144 @@
+.form-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 4rem 2rem;
+}
+
+.auth-form {
+  width: 100%;
+  max-width: 700px; /* Formu biraz genişletelim */
+  padding: 2rem;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form h2 {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+.user-type-selector {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  border: 1px solid #ddd;
+  padding: 0.75rem;
+  border-radius: 8px;
+}
+.user-type-selector label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+/* YENİ GRID YAPISI */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 eşit sütun */
+    gap: 1.5rem; /* Sütunlar ve satırlar arası boşluk */
+}
+
+/* YENİ */
+.grid-span-2 {
+    grid-column: span 2; /* Bu class'a sahip olanlar 2 sütunu da kaplasın */
+}
+
+.form-group {
+  margin-bottom: 0; /* Grid gap kullandığımız için alttaki boşluğu sıfırlayabiliriz */
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #555;
+}
+
+.form-group input,
+.form-group select, /* select için de aynı stiller */
+.form-group textarea {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.form-group select:disabled {
+    background-color: #f8f9fa;
+    cursor: not-allowed;
+}
+
+.form-group textarea {
+  resize: vertical;
+}
+
+.submit-btn {
+  width: 100%;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 2rem;
+}
+
+.submit-btn:hover {
+  background-color: #0056b3;
+}
+
+.error-message {
+  color: #d93025;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.success-message {
+  color: #155724;
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.auth-form hr {
+  border: none;
+  border-top: 1px solid #eee;
+  margin: 2rem 0;
+  grid-column: span 2;
+}
+.auth-form h4 {
+  text-align: center;
+  color: #555;
+  margin-bottom: 1.5rem;
+  grid-column: span 2;
+}
+
+.form-footer {
+  text-align: center;
+  margin-top: 1.5rem;
+  color: #666;
+}
+
+.form-footer a {
+  color: #007bff;
+  text-decoration: none;
+  font-weight: 500;
+}

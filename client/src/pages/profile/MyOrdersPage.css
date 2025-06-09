@@ -1,0 +1,97 @@
+.my-orders-page {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+.loading-container, .error-container {
+    text-align: center;
+    padding: 3rem;
+    font-size: 1.2rem;
+}
+
+.order-filters {
+  display: flex;
+  gap: 0.5rem;
+  margin: 1rem 0 2rem 0;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1rem;
+}
+
+.filter-btn {
+  padding: 0.6rem 1rem;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.filter-btn:hover {
+  background-color: #e2e6ea;
+}
+
+.filter-btn.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.order-card {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #ddd;
+}
+
+.order-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.order-status {
+  padding: 0.4rem 0.8rem;
+  border-radius: 15px;
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+/* Farklı durumlar için renkler */
+.status-beklemede, .status-hazırlanıyor { background-color: #ffc107; color: #333; }
+.status-kargoya-verildi { background-color: #17a2b8; color: white; }
+.status-teslim-edildi { background-color: #28a745; color: white; }
+.status-iptal-edildi { background-color: #dc3545; color: white; }
+
+
+.order-body {
+  padding: 1rem;
+}
+
+.order-item {
+  padding: 0.5rem 0;
+}
+
+.order-footer {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  text-align: right;
+  border-top: 1px solid #ddd;
+}

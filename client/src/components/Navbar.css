@@ -1,0 +1,127 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #20232a;
+  padding: 1rem 2rem;
+  color: white;
+  position: relative; /* Açılır menünün doğru konumlanması için */
+  z-index: 1001; /* Diğer elementlerin üstünde kalması için */
+}
+
+.navbar-brand {
+  color: #61dafb;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.nav-links {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+}
+
+.nav-link:hover {
+  color: #61dafb;
+}
+
+/* === AÇILIR MENÜ STİLLERİ BAŞLANGIÇ === */
+
+/* Hesabım yazısını ve oku içeren ana kapsayıcı */
+.account-menu {
+  position: relative; /* dropdown-content'in buna göre konumlanması için */
+  cursor: pointer;
+}
+
+/* "Hesabım (Kullanıcı Adı)" ve ok işaretini yan yana getirir */
+.account-menu-trigger {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.account-menu-trigger .nav-link {
+    padding: 0.5rem 0; /* Menünün yüksekliğini diğerleriyle aynı yapmak için */
+}
+
+.arrow-down {
+    font-size: 0.7rem;
+    transition: transform 0.2s ease;
+}
+
+/* Üzerine gelince okun dönmesi */
+.account-menu:hover .arrow-down {
+    transform: rotate(180deg);
+}
+
+
+/* Açılır menünün kendisi (başta gizli) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background-color: #f9f9f9;
+  min-width: 200px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden; /* Kenar yuvarlaklığını korumak için */
+}
+
+/* Ana kapsayıcının üzerine gelindiğinde açılır menüyü göster */
+.account-menu:hover .dropdown-content {
+  display: block;
+}
+
+/* Açılır menüdeki linkler */
+.dropdown-link {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 1rem;
+}
+
+.dropdown-link:hover {
+  background-color: #f1f1f1;
+}
+
+/* Çıkış Yap butonu için özel stil */
+.dropdown-link-button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.dropdown-link-button:hover {
+    background-color: #f1f1f1;
+}
+
+/* === AÇILIR MENÜ STİLLERİ BİTİŞ === */
+
+.cart-badge {
+  background-color: #dc3545;
+  color: white;
+  border-radius: 50%;
+  padding: 0.15rem 0.45rem;
+  font-size: 0.75rem;
+  vertical-align: top;
+  margin-left: 4px;
+}
