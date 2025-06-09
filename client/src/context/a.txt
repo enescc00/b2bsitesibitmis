@@ -1,0 +1,51 @@
+import React, { createContext, useState, useEffect } from 'react';
+
+export const CartContext = createContext();
+
+export const CartProvider = ({ children }) => {
+  const [cartItems, setCartItems] = useState(() => {
+    try {
+      const localData = localStorage.getItem('cart');
+      return localData ? JSON.parse(localData) : [];
+    } catch (error) {
+      return [];
+    }
+  });
+
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  const addToCart = (product) => {
+    setCartItems(prevItems => {
+      const exist = prevItems.find(item => item._id === product._id);
+      if (exist) {
+        // Ürün zaten sepetteyse miktarını 1 artır
+        return prevItems.map(item =>
+          item._id === product._id ? { ...item, qty: item.qty + 1 } : item
+        );
+      } else {
+        // Ürün sepette değilse ekle (miktar 1 olarak)
+        return [...prevItems, { ...product, qty: 1 }];
+      }
+    });
+    alert(`${product.name} sepete eklendi!`);
+  };
+
+  const removeFromCart = (productId) => {
+    setCartItems(prevItems => prevItems.filter(item => item._id !== productId));
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  const value = {
+    cartItems,
+    addToCart,
+    removeFromCart,
+    clearCart,
+  };
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
+};
