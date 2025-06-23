@@ -1,20 +1,71 @@
 const express = require('express');
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const { admin } = require('../middleware/adminMiddleware');
+const { protect, admin } = require('../middleware/authMiddleware');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const SupplierOrder = require('../models/SupplierOrder');
 const { User } = require('../models/User');
 
-// === YENİ ROTALAR BAŞLANGIÇ ===
-
-// @route   GET /api/orders
-// @desc    Get all orders (Admin only)
+// @route   GET /api/orders (Tüm siparişleri listele - Admin, Sayfalama ve Tarih Filtresi ile)
 // @access  Private/Admin
 router.get('/', protect, admin, async (req, res) => {
+    const pageSize = 10;
+    const page = Number(req.query.pageNumber) || 1;
+    
+    let filter = {};
+
+    if (req.query.startDate && req.query.endDate) {
+        filter.createdAt = {
+            $gte: new Date(req.query.startDate),
+            $lte: new Date(new Date(req.query.endDate).setHours(23, 59, 59, 999)) // Bitiş gününü tam olarak dahil et
+        };
+    }
+
     try {
-        // Müşteri bilgilerini de siparişe eklemek için populate kullanıyoruz
-        const orders = await Order.find({}).populate('user', 'id name').sort({ createdAt: -1 });
+        const count = await Order.countDocuments(filter);
+        const orders = await Order.find(filter)
+            .populate('user', 'id name')
+            .sort({ createdAt: -1 })
+            .limit(pageSize)
+            .skip(pageSize * (page - 1));
+            
+        res.json({ orders, page, pages: Math.ceil(count / pageSize) });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Sunucu Hatası' });
+    }
+});
+
+// @route   PUT /api/orders/:id/backordered/:productId/cancel  (Eksik ürünü iptal et - Müşteri)
+// @access  Private
+router.put('/:id/backordered/:productId/cancel', protect, async (req, res) => {
+    try {
+        const order = await Order.findOne({ _id: req.params.id, user: req.user._id });
+        if (!order) return res.status(404).json({ msg: 'Sipariş bulunamadı' });
+
+        const index = order.backorderedItems.findIndex(i => i.product.toString() === req.params.productId);
+        if (index === -1) return res.status(404).json({ msg: 'Ürün eksik listesinde bulunamadı' });
+
+        order.backorderedItems.splice(index, 1);
+
+        // Sipariş durumu güncelle
+        if (order.backorderedItems.length === 0 && order.status === 'Kısmi Tamamlandı') {
+            order.status = 'Hazırlanıyor';
+        }
+
+        await order.save();
+        return res.json(order);
+    } catch (err) {
+        console.error(err);
+        return res.status(500).json({ msg: 'Sunucu hatası' });
+    }
+});
+
+// @route   GET /api/orders/myorders (Kullanıcının kendi siparişleri)
+// @access  Private
+router.get('/myorders', protect, async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
         res.json(orders);
     } catch (error) {
         console.error(error);
@@ -22,20 +73,107 @@ router.get('/', protect, admin, async (req, res) => {
     }
 });
 
-// @route   PUT /api/orders/:id/status
-// @desc    Update order status (Admin only)
+// @route   GET /api/orders/:id (Tek siparişi getir - Admin)
+// @access  Private/Admin
+router.get('/:id', protect, admin, async (req, res) => {
+    try {
+        const order = await Order.findById(req.params.id).populate('user', 'name email companyTitle');
+        if (order) {
+            res.json(order);
+        } else {
+            res.status(404).json({ msg: 'Sipariş bulunamadı' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Sunucu Hatası' });
+    }
+});
+
+
+// @route   PATCH /api/orders/:id/status  (Sipariş durumunu güncelle - Admin)
+// @access  Private/Admin
+router.patch('/:id/status', protect, admin, async (req, res) => {
+    try {
+        const { status, packagesCount } = req.body;
+        const allowedStatuses = ['Onay Bekliyor','Beklemede','Hazırlanıyor','Kargoya Verildi','Teslim Edildi','İptal Edildi','Kısmi Tamamlandı'];
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ msg: 'Geçersiz durum.' });
+        }
+        const order = await Order.findById(req.params.id);
+        if (!order) return res.status(404).json({ msg: 'Sipariş bulunamadı' });
+        order.status = status;
+        if (status === 'Kargoya Verildi') {
+            if (!packagesCount || packagesCount < 1) {
+                return res.status(400).json({ msg: 'Kargo koli adedi gereklidir.' });
+            }
+            order.packagesCount = packagesCount;
+        }
+        await order.save();
+        res.json(order);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ msg: 'Sunucu hatası' });
+    }
+});
+
+// @route   PUT /api/orders/:id (Sipariş içeriğini düzenle - Admin)
+// @access  Private/Admin
+router.put('/:id', protect, admin, async (req, res) => {
+    const { orderItems, backorderedItems } = req.body;
+
+    try {
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ msg: 'Sipariş bulunamadı' });
+        }
+
+        const user = await User.findById(order.user);
+        if (!user) {
+            return res.status(404).json({ msg: 'Siparişe ait müşteri bulunamadı.' });
+        }
+
+        const previousTotalPrice = order.totalPrice;
+        
+        // Yeni toplam fiyatı, güncellenmiş orderItems listesinden hesapla
+        const newTotalPrice = orderItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+
+        // Cari hesabı güncelle (eğer sipariş Cari ise)
+        if (order.paymentMethod === 'Cari Hesap') {
+            const priceDifference = previousTotalPrice - newTotalPrice;
+            user.currentAccountBalance -= priceDifference;
+            await user.save();
+        }
+
+        // Siparişi güncelle
+        order.orderItems = orderItems;
+        order.backorderedItems = backorderedItems || order.backorderedItems;
+        order.totalPrice = newTotalPrice;
+        
+        // Sipariş durumunu ayarla
+        if (order.backorderedItems && order.backorderedItems.length > 0) {
+            order.status = 'Kısmi Tamamlandı';
+        } else if (order.status === 'Kısmi Tamamlandı') {
+            // Eğer tüm eksik ürünler tamamlandıysa durumu eski haline getir.
+            order.status = 'Hazırlanıyor';
+        }
+
+        const updatedOrder = await order.save();
+        res.json(updatedOrder);
+
+    } catch (error) {
+        console.error("Sipariş güncellenirken hata:", error);
+        res.status(500).json({ msg: 'Sipariş güncellenirken sunucu hatası oluştu.' });
+    }
+});
+
+
+// @route   PUT /api/orders/:id/status (Sipariş durumunu güncelle - Admin)
 // @access  Private/Admin
 router.put('/:id/status', protect, admin, async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
-
         if (order) {
             order.status = req.body.status;
-            // Eğer "Teslim Edildi" olarak işaretlenirse, teslim tarihini de ayarla
-            if (req.body.status === 'Teslim Edildi') {
-                order.isDelivered = true;
-                order.deliveredAt = Date.now();
-            }
             const updatedOrder = await order.save();
             res.json(updatedOrder);
         } else {
@@ -47,61 +185,54 @@ router.put('/:id/status', protect, admin, async (req, res) => {
     }
 });
 
-// === YENİ ROTALAR BİTİŞ ===
-
-
-// GET /api/orders/myorders - Mevcut Rota
-router.get('/myorders', protect, async (req, res) => {
-    try {
-        const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
-        res.json(orders);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: 'Sunucu Hatası' });
-    }
-});
-
-
-// POST /api/orders - Mevcut Rota
+// @route   POST /api/orders (Yeni sipariş oluştur - Müşteri tarafından)
+// @access  Private
 router.post('/', protect, async (req, res) => {
   const { orderItems, shippingAddress, paymentMethod, totalPrice } = req.body;
 
   if (orderItems && orderItems.length === 0) {
-    return res.status(400).json({ msg: 'Sepet boş.' });
-  } else {
-    try {
-      const order = new Order({
-        orderItems: orderItems,
-        user: req.user._id,
-        shippingAddress,
-        paymentMethod,
-        totalPrice,
-      });
+    return res.status(400).json({ msg: 'Sepet boş olamaz.' });
+  }
 
-      const createdOrder = await order.save();
-      
-      for (const item of order.orderItems) {
-        const product = await Product.findById(item.product);
-        if (product) {
-          product.stock = product.stock - item.qty;
-          await product.save();
-        }
-      }
+  try {
+    const order = new Order({
+      orderItems: orderItems,
+      user: req.user._id,
+      shippingAddress,
+      paymentMethod,
+      totalPrice,
+      originalTotalPrice: totalPrice,
+      // Modeldeki 'Onay Bekliyor' durumu otomatik olarak atanacaktır.
+    });
 
-      if (createdOrder.paymentMethod === 'Cari Hesap') {
-          const user = await User.findById(req.user.id);
-          if (user) {
-              user.currentAccountBalance = (user.currentAccountBalance || 0) + createdOrder.totalPrice;
-              await user.save();
-          }
-      }
+    const createdOrder = await order.save();
 
-      res.status(201).json(createdOrder);
-
-    } catch(error) {
-        console.error(error);
-        res.status(500).json({ msg: 'Sipariş oluşturulurken bir hata oluştu.'});
+    // === SİPARİŞ AYIRMA ===
+    const supplierGroups = {};
+    for (const item of orderItems) {
+      const product = await Product.findById(item.product).select('supplier');
+      if (!product) continue;
+      const supId = String(product.supplier || 'unknown');
+      if (!supplierGroups[supId]) supplierGroups[supId] = [];
+      supplierGroups[supId].push(item);
     }
+
+    for (const [supplierId, items] of Object.entries(supplierGroups)) {
+      if (supplierId === 'unknown') continue;
+      const subTotal = items.reduce((acc,i)=>acc+i.price*i.qty,0);
+      const supOrder = new SupplierOrder({
+        parentOrder: createdOrder._id,
+        supplier: supplierId,
+        orderItems: items,
+        totalPrice: subTotal
+      });
+      await supOrder.save();
+    }
+
+    res.status(201).json(createdOrder);
+  } catch(error) {
+      console.error(error);
+      res.status(500).json({ msg: 'Sipariş oluşturulurken bir hata oluştu.'});
   }
 });
 

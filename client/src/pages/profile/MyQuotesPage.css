@@ -1,0 +1,23 @@
+.status-chip {
+  display: inline-block;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-bekleniyor {
+  background-color: #fff7cd;
+  color: #b26a00;
+}
+
+.status-tamamlandi {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.status-talep-edildi {
+  background-color: #e0e7ff;
+  color: #3730a3;
+}

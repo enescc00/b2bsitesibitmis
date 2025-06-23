@@ -1,25 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import './Form.css';
 import cityData from '../data/turkey-provinces-districts.json';
 
+// === DEĞİŞİKLİK BURADA: Bileşenleri ana fonksiyonun DIŞINA taşıdık ===
+
+// Bireysel kullanıcı için form alanları bileşeni
+const BireyselFields = ({ formData, onChange }) => (
+  <div className="form-grid">
+    <div className="form-group grid-span-2">
+      <label htmlFor="name">Ad Soyad</label>
+      <input type="text" id="name" name="name" value={formData.name} onChange={onChange} required />
+    </div>
+    <div className="form-group">
+      <label htmlFor="tcKimlik">TC Kimlik Numarası</label>
+      <input type="text" id="tcKimlik" name="tcKimlik" value={formData.tcKimlik} onChange={onChange} required />
+    </div>
+    <div className="form-group">
+      <label htmlFor="taxOffice">Vergi Dairesi</label>
+      <input type="text" id="taxOffice" name="taxOffice" value={formData.taxOffice} onChange={onChange} required />
+    </div>
+  </div>
+);
+
+// Kurumsal kullanıcı için form alanları bileşeni
+const KurumsalFields = ({ formData, onChange }) => (
+  <div className="form-grid">
+    <div className="form-group grid-span-2">
+      <label htmlFor="companyTitle">Firma Ünvanı</label>
+      <input type="text" id="companyTitle" name="companyTitle" value={formData.companyTitle} onChange={onChange} required />
+    </div>
+    <div className="form-group grid-span-2">
+      <label htmlFor="name">Yetkili Adı Soyadı</label>
+      <input type="text" id="name" name="name" value={formData.name} onChange={onChange} required />
+    </div>
+    <div className="form-group">
+      <label htmlFor="taxNumber">Vergi Numarası</label>
+      <input type="text" id="taxNumber" name="taxNumber" value={formData.taxNumber} onChange={onChange} required />
+    </div>
+    <div className="form-group">
+      <label htmlFor="taxOffice">Vergi Dairesi</label>
+      <input type="text" id="taxOffice" name="taxOffice" value={formData.taxOffice} onChange={onChange} required />
+    </div>
+  </div>
+);
+
+
+// Ana Kayıt Sayfası Bileşeni
 function RegisterPage() {
   const [userType, setUserType] = useState('bireysel');
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    tcKimlik: '',
-    companyTitle: '',
-    taxNumber: '',
-    taxOffice: '',
-    province: '',
-    district: '',
-    fullAddress: ''
+    name: '', email: '', password: '', tcKimlik: '', companyTitle: '',
+    taxNumber: '', taxOffice: '', province: '', district: '', fullAddress: ''
   });
   const [districts, setDistricts] = useState([]);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const navigate = useNavigate();
 
   const handleProvinceChange = (e) => {
@@ -35,14 +70,9 @@ function RegisterPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
-
-    // Backend'e gönderilecek veriyi hazırla
     const submissionData = {
       userType,
-      name: userType === 'kurumsal' ? formData.name : formData.name, // Kurumsalda yetkili adı, bireyselde ad soyad
-      companyTitle: userType === 'kurumsal' ? formData.companyTitle : undefined,
+      name: formData.name,
       email: formData.email,
       password: formData.password,
       address: {
@@ -51,65 +81,33 @@ function RegisterPage() {
         fullAddress: formData.fullAddress
       },
       taxOffice: formData.taxOffice,
-      tcKimlik: userType === 'bireysel' ? formData.tcKimlik : undefined,
-      taxNumber: userType === 'kurumsal' ? formData.taxNumber : undefined
+      tcKimlik: formData.tcKimlik,
+      companyTitle: formData.companyTitle,
+      taxNumber: formData.taxNumber
     };
 
     try {
-      const response = await fetch('http://localhost:5001/api/users/register', {
+      const response = await fetch('/api/users/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submissionData),
       });
       const data = await response.json();
-      if (!response.ok) throw new Error(data.msg || 'Kayıt işlemi başarısız.');
+      if (!response.ok) {
+        // Gelen hata bir dizi ise, tüm mesajları göster
+        if (data.errors) {
+            const errorMsg = data.errors.map(err => err.msg).join('\n');
+            throw new Error(errorMsg);
+        }
+        throw new Error(data.msg || 'Kayıt işlemi başarısız.');
+      }
       
-      setSuccess('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...');
+      toast.success('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     }
   };
-  
-  // Bireysel ve Kurumsal form alanlarını ayrı bileşenler olarak düşünmek kodu temizler
-  const BireyselFields = () => (
-    <div className="form-grid">
-      <div className="form-group grid-span-2">
-        <label>Ad Soyad</label>
-        <input type="text" name="name" value={formData.name} onChange={onChange} required />
-      </div>
-      <div className="form-group">
-        <label>TC Kimlik Numarası</label>
-        <input type="text" name="tcKimlik" value={formData.tcKimlik} onChange={onChange} required />
-      </div>
-      <div className="form-group">
-        <label>Vergi Dairesi</label>
-        <input type="text" name="taxOffice" value={formData.taxOffice} onChange={onChange} required />
-      </div>
-    </div>
-  );
-
-  const KurumsalFields = () => (
-     <div className="form-grid">
-        <div className="form-group grid-span-2">
-          <label>Firma Ünvanı</label>
-          <input type="text" name="companyTitle" value={formData.companyTitle} onChange={onChange} required />
-        </div>
-        <div className="form-group grid-span-2">
-          <label>Yetkili Adı Soyadı</label>
-          <input type="text" name="name" value={formData.name} onChange={onChange} required />
-        </div>
-        <div className="form-group">
-          <label>Vergi Numarası</label>
-          <input type="text" name="taxNumber" value={formData.taxNumber} onChange={onChange} required />
-        </div>
-        <div className="form-group">
-          <label>Vergi Dairesi</label>
-          <input type="text" name="taxOffice" value={formData.taxOffice} onChange={onChange} required />
-        </div>
-      </div>
-  );
-
 
   return (
     <div className="form-container">
@@ -126,39 +124,36 @@ function RegisterPage() {
           </label>
         </div>
 
-        {error && <p className="error-message">{error}</p>}
-        {success && <p className="success-message">{success}</p>}
-
-        {userType === 'bireysel' ? <BireyselFields /> : <KurumsalFields />}
+        {userType === 'bireysel' ? <BireyselFields formData={formData} onChange={onChange} /> : <KurumsalFields formData={formData} onChange={onChange} />}
         
         <hr/>
         <h4>İletişim ve Adres Bilgileri</h4>
         <div className="form-grid">
             <div className="form-group">
-                <label>Email</label>
-                <input type="email" name="email" value={formData.email} onChange={onChange} required />
+                <label htmlFor="email">Email</label>
+                <input type="email" id="email" name="email" value={formData.email} onChange={onChange} required />
             </div>
             <div className="form-group">
-                <label>Parola</label>
-                <input type="password" name="password" value={formData.password} onChange={onChange} required minLength="6" />
+                <label htmlFor="password">Parola</label>
+                <input type="password" id="password" name="password" value={formData.password} onChange={onChange} required minLength="6" />
             </div>
             <div className="form-group">
-                <label>İl</label>
-                <select name="province" value={formData.province} onChange={handleProvinceChange} required>
+                <label htmlFor="province">İl</label>
+                <select id="province" name="province" value={formData.province} onChange={handleProvinceChange} required>
                     <option value="">İl Seçiniz</option>
                     {cityData.map(p => <option key={p.plaka} value={p.il}>{p.il}</option>)}
                 </select>
             </div>
             <div className="form-group">
-                <label>İlçe</label>
-                <select name="district" value={formData.district} onChange={onChange} required disabled={!formData.province}>
+                <label htmlFor="district">İlçe</label>
+                <select id="district" name="district" value={formData.district} onChange={onChange} required disabled={!formData.province}>
                     <option value="">İlçe Seçiniz</option>
                     {districts.map(d => <option key={d} value={d}>{d}</option>)}
                 </select>
             </div>
             <div className="form-group grid-span-2">
-                <label>Açık Adres</label>
-                <textarea name="fullAddress" value={formData.fullAddress} onChange={onChange} required rows="3"></textarea>
+                <label htmlFor="fullAddress">Açık Adres</label>
+                <textarea id="fullAddress" name="fullAddress" value={formData.fullAddress} onChange={onChange} required rows="3"></textarea>
             </div>
         </div>
 

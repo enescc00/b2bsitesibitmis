@@ -1,0 +1,70 @@
+/* New Quote Page basic styles */
+.new-quote-page {
+  padding: 1.5rem;
+}
+
+.new-quote-page h1 {
+  margin-bottom: 1rem;
+}
+
+.customer-select {
+  margin-bottom: 1rem;
+}
+
+.customer-select select {
+  padding: 0.4rem;
+  min-width: 200px;
+}
+
+.quote-grid {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 1rem;
+}
+
+.product-area {
+  min-height: 300px;
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.summary-sidebar {
+  border: 1px solid #ddd;
+  padding: 1rem;
+  border-radius: 4px;
+  background: #fafafa;
+  height: fit-content;
+}
+
+.summary-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 0.5rem 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.summary-sidebar li {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+
+.subtotal {
+  font-weight: 600;
+  text-align: right;
+  margin: 0.6rem 0;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}

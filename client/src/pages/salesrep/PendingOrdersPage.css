@@ -1,0 +1,105 @@
+.admin-page-container {
+    padding: 2rem;
+}
+
+.admin-page-container h1 {
+    margin-top: 0;
+}
+.admin-page-container p {
+    margin-bottom: 2rem;
+    font-size: 1.1rem;
+    color: #6c757d;
+}
+
+.admin-table-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #e9ecef;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.admin-table th, .admin-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.admin-table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+
+.admin-table tbody tr.clickable-row:hover {
+    background-color: #f1f3f5;
+    cursor: pointer;
+}
+
+.action-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.action-cell .approve-btn, .action-cell .delete-btn {
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 0.5rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s ease-in-out;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: white;
+}
+.approve-btn:hover {
+    background-color: #218838;
+}
+
+.delete-btn {
+    background-color: #dc3545;
+    color: white;
+}
+.delete-btn:hover {
+    background-color: #c82333;
+}
+
+/* === YENİ STİLLER: Genişletilebilir Detay Satırı İçin === */
+
+.order-details-row {
+    background-color: #f8f9fa !important;
+}
+.order-details-cell {
+    padding: 1.5rem !important;
+    border-left: 4px solid #007bff !important;
+}
+.order-details-cell h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.order-details-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-details-table th, .order-details-table td {
+    padding: 8px;
+    border: 1px solid #ddd;
+}
+
+.order-details-table th {
+    background-color: #e9ecef;
+}

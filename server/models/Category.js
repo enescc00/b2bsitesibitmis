@@ -8,6 +8,12 @@ const CategorySchema = new Schema({
     unique: true,
     trim: true
   },
+  // === YENİ ALAN: Üst kategoriyi tutmak için ===
+  parent: {
+    type: Schema.Types.ObjectId,
+    ref: 'Category', // Kendi kendine referans verir
+    default: null
+  },
   createdAt: {
     type: Date,
     default: Date.now

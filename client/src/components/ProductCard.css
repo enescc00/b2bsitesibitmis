@@ -1,61 +1,112 @@
 .product-card {
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 1rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  background-color: #fff;
-  color: #333;
-  transition: transform 0.2s;
-  display: flex;
-  flex-direction: column;
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .product-card:hover {
-  transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    transform: translateY(-5px);
 }
 
-.product-card h3 {
-    margin-top: 0;
-    margin-bottom: 0.5rem;
-    flex-grow: 1; /* Başlığın büyümesini sağlar, butonlar altta kalır */
+.product-card .product-link {
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    position: relative; /* Favori butonu için */
+}
+
+.product-image-container {
+    width: 100%;
+    aspect-ratio: 1 / 1; 
+    overflow: hidden;
+    background-color: #f8f9fa;
+}
+
+.product-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.product-info {
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
 }
 
 .product-category {
-  font-size: 0.9rem;
-  color: #666;
-  background-color: #f0f0f0;
-  padding: 0.2rem 0.5rem;
-  border-radius: 12px;
-  display: inline-block;
-  margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin: 0 0 0.5rem 0;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0; /* Fiyat ile arasını açmak için */
+    color: #212529;
+    flex-grow: 1;
 }
 
 .product-price {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #007bff;
-  margin-bottom: 0.5rem;
-}
-
-.product-stock {
-    font-size: 0.9rem;
-    color: #555;
-    margin-bottom: 1rem;
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #007bff;
+    margin: 0;
+    padding: 1rem;
+    border-top: 1px solid #f0f0f0;
 }
 
 .add-to-cart-btn {
-  margin-top: auto; /* Butonu kartın en altına iter */
-  width: 100%;
-  padding: 0.6rem;
-  border: none;
-  background-color: #28a745;
-  color: white;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 0.8rem;
+    border-radius: 0 0 4px 4px; /* Kartın alt köşelerine yuvarlaklık ver */
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    width: 100%;
+    margin-top: auto;
 }
 
 .add-to-cart-btn:hover {
-  background-color: #218838;
+    background-color: #218838;
+}
+
+.wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.8);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    cursor: pointer;
+    z-index: 5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.wishlist-btn:hover {
+    background: #fff;
+    transform: scale(1.1);
+}
+
+.wishlist-btn i {
+    font-size: 1.2rem;
+    color: #dc3545;
 }

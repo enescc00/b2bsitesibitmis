@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import Modal from '../components/Modal';
@@ -15,17 +16,13 @@ function CheckoutPage() {
 
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('Cari Hesap');
-  
   const [isPreInfoModalOpen, setIsPreInfoModalOpen] = useState(false);
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [isTermsAgreed, setIsTermsAgreed] = useState(false);
-  
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const [newAddress, setNewAddress] = useState({
       addressTitle: 'Yeni Adres', province: '', district: '', fullAddress: ''
   });
-  
-  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -50,30 +47,26 @@ function CheckoutPage() {
       e.preventDefault();
       setSelectedAddress(newAddress); 
       setIsAddressModalOpen(false);
+      toast.info('Teslimat adresi geçici olarak değiştirildi.');
   };
 
   const placeOrderHandler = async () => {
     if (!selectedAddress) {
-        setError('Lütfen bir teslimat adresi seçin veya ekleyin.');
-        return;
+        return toast.error('Lütfen bir teslimat adresi seçin veya ekleyin.');
     }
     setLoading(true);
-    setError('');
     try {
-      const itemsPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+      const itemsPrice = cartItems.reduce((acc, item) => acc + (item.salePrice || 0) * item.qty, 0);
       const shippingPrice = itemsPrice > 500 ? 0 : 49.90;
       const totalPrice = itemsPrice + shippingPrice;
-
       const orderData = {
-        orderItems: cartItems.map(item => ({
-            name: item.name, qty: item.qty, price: item.price, product: item._id
-        })),
+        orderItems: cartItems.map(item => ({ name: item.name, qty: item.qty, price: (item.salePrice || 0), product: item._id })),
         shippingAddress: selectedAddress,
         paymentMethod: paymentMethod,
         totalPrice: totalPrice,
       };
 
-      const response = await fetch('http://localhost:5001/api/orders', {
+      const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}`},
         body: JSON.stringify(orderData)
@@ -82,49 +75,33 @@ function CheckoutPage() {
       if (!response.ok) throw new Error(createdOrder.msg || 'Sipariş oluşturulamadı.');
       
       clearCart();
-      alert('Siparişiniz başarıyla alındı!');
+      toast.success('Siparişiniz başarıyla alındı!');
       navigate('/'); 
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
   
-  if (!user || !selectedAddress) return <div>Yükleniyor...</div>;
+  if (!user || !selectedAddress) return <div className="loading-container">Yükleniyor...</div>;
 
-  const itemsPrice = cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
+  // === DÜZELTME 1: item.price -> item.salePrice olarak değiştirildi ===
+  const itemsPrice = cartItems.reduce((acc, item) => acc + (item.salePrice || 0) * item.qty, 0);
   const shippingPrice = itemsPrice > 500 ? 0 : 49.90;
   const totalPrice = itemsPrice + shippingPrice;
 
   return (
     <>
       <Modal show={isPreInfoModalOpen} onClose={() => setIsPreInfoModalOpen(false)} title="Ön Bilgilendirme Formu">
-        <PreliminaryInfoText 
-            user={user}
-            cartItems={cartItems}
-            paymentMethod={paymentMethod}
-            totalPrice={totalPrice}
-        />
+        <PreliminaryInfoText user={user} cartItems={cartItems} paymentMethod={paymentMethod} totalPrice={totalPrice} />
       </Modal>
       <Modal show={isSalesModalOpen} onClose={() => setIsSalesModalOpen(false)} title="Mesafeli Satış Sözleşmesi">
-        <SalesAgreementText 
-            user={user}
-            cartItems={cartItems}
-            paymentMethod={paymentMethod}
-            totalPrice={totalPrice}
-            shippingPrice={shippingPrice}
-            selectedAddress={selectedAddress}
-        />
+        <SalesAgreementText user={user} cartItems={cartItems} paymentMethod={paymentMethod} totalPrice={totalPrice} shippingPrice={shippingPrice} selectedAddress={selectedAddress} />
       </Modal>
       <Modal show={isAddressModalOpen} onClose={() => setIsAddressModalOpen(false)} title="Yeni Adres Ekle">
-        <AddressForm 
-            addressData={newAddress}
-            onAddressChange={handleNewAddressChange}
-            onSubmit={handleAddNewAddress}
-        />
+        <AddressForm addressData={newAddress} onAddressChange={handleNewAddressChange} onSubmit={handleAddNewAddress} />
       </Modal>
-
       <div className="checkout-page">
         <div className="checkout-main">
           <div className="checkout-section">
@@ -170,32 +147,30 @@ function CheckoutPage() {
                 <div key={item._id} className="checkout-item">
                     <span className="item-qty">{item.qty}x</span>
                     <span className="item-name">{item.name}</span>
-                    <span className="item-price">{(item.qty * item.price).toFixed(2)} ₺</span>
+                    {/* === DÜZELTME 2: item.price -> item.salePrice olarak değiştirildi === */}
+                    <span className="item-price">{(item.qty * (item.salePrice || 0)).toFixed(2)} ₺</span>
                 </div>
             ))}
          </div>
         </div>
-        
         <div className="checkout-sidebar">
           <div className="order-total-box">
               <div className="terms-agreement-box">
                 <input 
-                    id="terms-checkbox"
-                    type="checkbox" 
-                    checked={isTermsAgreed} 
-                    onChange={(e) => setIsTermsAgreed(e.target.checked)} 
+                    id="terms-checkbox" type="checkbox" 
+                    checked={isTermsAgreed} onChange={(e) => setIsTermsAgreed(e.target.checked)} 
                 />
                 <label htmlFor="terms-checkbox" className="terms-label">
                     <span onClick={() => setIsPreInfoModalOpen(true)} className="legal-link">Ön bilgilendirme formu</span>'nu ve <span onClick={() => setIsSalesModalOpen(true)} className="legal-link">Mesafeli satış sözleşmesi</span>'ni okudum ve onaylıyorum.
                 </label>
               </div>
-
               <button className="place-order-btn" onClick={placeOrderHandler} disabled={loading || !isTermsAgreed}>
                   {loading ? 'Onaylanıyor...' : 'Siparişi Onayla'}
               </button>
               <h3>Ödenecek Tutar</h3>
               <div className="total-row">
                   <span>Ürünler</span>
+                  {/* === DÜZELTME 3: itemsPrice artık doğru hesaplandığı için burası çalışacak === */}
                   <span>{itemsPrice.toFixed(2)} ₺</span>
               </div>
               <div className="total-row">
@@ -206,7 +181,6 @@ function CheckoutPage() {
                   <span>Toplam</span>
                   <span>{totalPrice.toFixed(2)} ₺</span>
               </div>
-              {error && <p className="error-message" style={{marginTop: '1rem'}}>{error}</p>}
           </div>
         </div>
       </div>

@@ -8,3 +8,8 @@
   gap: 1.5rem;
   margin-top: 2rem;
 }
+
+/* YENİ KURAL */
+.products-grid .full-width {
+    grid-column: 1 / -1; /* Elementin tüm sütunları kaplamasını sağlar */
+}

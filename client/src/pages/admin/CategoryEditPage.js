@@ -9,38 +9,48 @@ function CategoryEditPage() {
   const { authToken } = useContext(AuthContext);
 
   const [name, setName] = useState('');
+  // === YENİ STATE'LER ===
+  const [parent, setParent] = useState(null); // Seçilen üst kategoriyi tutar
+  const [allCategories, setAllCategories] = useState([]); // Üst kategori dropdown'ı için
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // 'new' kelimesiyle değil, categoryId'nin var olup olmamasıyla kontrol ediyoruz.
   const isNewCategory = !categoryId;
 
   useEffect(() => {
-    // Sadece mevcut bir kategoriyi düzenliyorsak (yani yeni değilse) veri çek
-    if (!isNewCategory) {
-      setLoading(true);
-      const fetchCategory = async () => {
-        try {
-          const res = await fetch(`http://localhost:5001/api/categories/${categoryId}`, {
+    setLoading(true);
+    const fetchInitialData = async () => {
+      try {
+        // Dropdown için tüm kategorileri çek
+        const resAll = await fetch('http://localhost:5001/api/categories', {
+            headers: { 'Authorization': `Bearer ${authToken}` }
+        });
+        const dataAll = await resAll.json();
+        if(!resAll.ok) throw new Error("Kategoriler getirilemedi");
+        setAllCategories(dataAll);
+
+        // Eğer düzenleme modundaysak, mevcut kategorinin bilgilerini çek
+        if (!isNewCategory) {
+          const resCurrent = await fetch(`http://localhost:5001/api/categories/${categoryId}`, {
               headers: { 'Authorization': `Bearer ${authToken}` }
           });
+          const dataCurrent = await resCurrent.json();
+          if (!resCurrent.ok) throw new Error("Kategori bulunamadı");
           
-          if (!res.ok) {
-            const errorData = await res.json();
-            throw new Error(errorData.msg || "Kategori bulunamadı");
-          }
-
-          const data = await res.json();
-          setName(data.name);
-
-        } catch(err) {
-          setError(err.message);
-        } finally {
-          setLoading(false);
+          setName(dataCurrent.name);
+          setParent(dataCurrent.parent || null); // Mevcut parent'ı ayarla
         }
-      };
-      fetchCategory();
+      } catch(err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if(authToken) {
+        fetchInitialData();
     }
   }, [categoryId, isNewCategory, authToken]);
 
@@ -50,22 +60,23 @@ function CategoryEditPage() {
     setError(''); 
     setSuccess('');
 
-    // "new" durumunu URL'den değil, `isNewCategory` değişkeninden kontrol et
     const url = isNewCategory ? 'http://localhost:5001/api/categories' : `http://localhost:5001/api/categories/${categoryId}`;
     const method = isNewCategory ? 'POST' : 'PUT';
+
+    // === GÜNCELLEME: Gönderilen veriye "parent" alanı eklendi ===
+    const bodyData = { name, parent: parent === "null" || parent === null ? null : parent };
 
     try {
         const response = await fetch(url, {
             method: method,
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-            body: JSON.stringify({ name })
+            body: JSON.stringify(bodyData)
         });
         const data = await response.json();
-        if (!response.ok) throw new Error(data.msg || 'İşlem başarısız.');
+        if (!response.ok) throw new Error(data.errors ? data.errors[0].msg : 'İşlem başarısız.');
         
         setSuccess(`Kategori başarıyla ${isNewCategory ? 'oluşturuldu' : 'güncellendi'}.`);
         
-        // Yeni kategori oluşturulduysa 2 saniye sonra listeye geri dön
         if (isNewCategory) {
           setTimeout(() => navigate('/admin/categories'), 2000);
         }
@@ -76,8 +87,7 @@ function CategoryEditPage() {
     }
   };
   
-  if (loading) return <div className="loading-container">Yükleniyor...</div>;
-  if (error && !isNewCategory) return <div className="error-container">Hata: {error}</div>;
+  if (loading && !allCategories.length) return <div className="loading-container">Yükleniyor...</div>;
 
   return (
     <div className="admin-page-container">
@@ -86,10 +96,24 @@ function CategoryEditPage() {
       <form onSubmit={handleSubmit} className="admin-form" style={{maxWidth: '600px', margin: '2rem auto'}}>
         {success && <p className="success-message">{success}</p>}
         {error && !success && <p className="error-message">{error}</p>}
+        
         <div className="form-group">
             <label htmlFor="name">Kategori Adı</label>
             <input type="text" id="name" name="name" value={name} onChange={(e) => setName(e.target.value)} required />
         </div>
+
+        {/* === YENİ ALAN: Üst Kategori Seçimi === */}
+        <div className="form-group">
+            <label htmlFor="parent">Üst Kategori (Boş bırakırsanız ana kategori olur)</label>
+            <select id="parent" name="parent" value={parent || "null"} onChange={(e) => setParent(e.target.value)}>
+                <option value="null">-- Ana Kategori --</option>
+                {allCategories.map(cat => (
+                    // Bir kategoriyi kendi kendisinin üst kategorisi yapmasını engelle
+                    cat._id !== categoryId && <option key={cat._id} value={cat._id}>{cat.name}</option>
+                ))}
+            </select>
+        </div>
+
         <button type="submit" className="submit-btn" disabled={loading}>
             {loading ? 'Kaydediliyor...' : (isNewCategory ? 'Kategoriyi Oluştur' : 'Değişiklikleri Kaydet')}
         </button>

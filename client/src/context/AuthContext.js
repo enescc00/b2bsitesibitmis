@@ -36,6 +36,46 @@ export const AuthProvider = ({ children }) => {
     initializeUser();
   }, [authToken]);
 
+  // Global fetch interceptor
+  useEffect(() => {
+    const originalFetch = window.fetch;
+    window.fetch = async (input, init = {}) => {
+      // Varsayılan olarak credentials dahil et
+      const newInit = { ...init, credentials: 'include' };
+      newInit.headers = {
+        ...(init.headers || {}),
+        ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
+      };
+
+      let response = await originalFetch(input, newInit);
+      if (response.status === 401) {
+        // Access token süresi dolmuş olabilir → refresh dene
+        try {
+          const refreshRes = await originalFetch('http://localhost:5001/api/users/auth/refresh', {
+            method: 'POST',
+            credentials: 'include'
+          });
+          if (refreshRes.ok) {
+            const data = await refreshRes.json();
+            login(data.token);
+            // İlk isteği token ile tekrar yap
+            newInit.headers['Authorization'] = `Bearer ${data.token}`;
+            response = await originalFetch(input, newInit);
+          } else {
+            logout();
+          }
+        } catch (err) {
+          console.error('Token yenileme hatası', err);
+          logout();
+        }
+      }
+      return response;
+    };
+    return () => {
+      window.fetch = originalFetch;
+    };
+  }, [authToken]);
+
   const login = (token) => {
     localStorage.setItem('token', token);
     setAuthToken(token);
