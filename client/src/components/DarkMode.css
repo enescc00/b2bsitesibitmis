@@ -1,0 +1,155 @@
+/* 
+  Modern Dark Theme Palette
+  - Backgrounds are layered with slightly different shades of gray.
+  - Accent colors are used for interactive elements.
+  - Text has high contrast for readability.
+*/
+
+:root {
+  /* Define dark theme colors as CSS variables for easy management */
+  --dark-bg: #1a1d24;          /* A deep, cool-toned dark blue/gray */
+  --dark-surface: #252a34;    /* Slightly lighter for cards, navbars */
+  --dark-border: #3c424f;      /* For subtle borders */
+  --dark-text-primary: #f0f0f0;  /* Off-white for primary text */
+  --dark-text-secondary: #a9b1c2; /* Lighter gray for secondary text */
+  --dark-accent-primary: #00aaff; /* A vibrant blue for links and highlights */
+  --dark-accent-secondary: #ffc857; /* A warm yellow/gold for search buttons etc. */
+  --dark-success: #28a745;      /* Green for 'add to cart' */
+  --dark-success-hover: #218838;
+}
+
+/* --- Base Styles --- */
+body.dark {
+  background-color: var(--dark-bg);
+  color: var(--dark-text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* --- Layout & Containers --- */
+body.dark .container,
+body.dark .main-content,
+body.dark .page-wrapper,
+body.dark .content {
+  background-color: transparent;
+  color: var(--dark-text-primary);
+}
+
+body.dark h1, body.dark h2, body.dark h3, body.dark h4, body.dark h5, body.dark h6 {
+  color: var(--dark-text-primary);
+}
+
+/* --- Navbar --- */
+body.dark .header-container,
+body.dark .navbar {
+  background-color: var(--dark-surface);
+  border-bottom: 1px solid var(--dark-border);
+}
+
+body.dark .navbar-brand {
+    color: var(--dark-accent-primary);
+}
+
+body.dark .nav-link, 
+body.dark .nav-action-item span {
+    color: var(--dark-text-secondary);
+}
+body.dark .nav-link:hover, 
+body.dark .nav-action-item:hover span {
+    color: var(--dark-text-primary);
+}
+
+/* --- Search Bar --- */
+body.dark .search-input {
+    background-color: var(--dark-bg);
+    color: var(--dark-text-primary);
+    border: 1px solid var(--dark-border);
+}
+body.dark .search-button {
+    background-color: var(--dark-accent-secondary);
+    color: var(--dark-bg);
+    border: none;
+}
+body.dark .search-button:hover {
+    filter: brightness(1.1);
+}
+
+/* --- Product Cards --- */
+body.dark .product-card,
+body.dark .card {
+  background-color: var(--dark-surface);
+  border: 1px solid var(--dark-border);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+body.dark .product-card .product-name,
+body.dark .card .card-title {
+  color: var(--dark-text-primary);
+}
+
+body.dark .product-card .product-category,
+body.dark .card .card-subtitle {
+  color: var(--dark-text-secondary);
+}
+
+body.dark .product-card .product-price {
+  color: var(--dark-accent-primary);
+  font-weight: bold;
+}
+
+/* --- Buttons --- */
+body.dark .product-card button,
+body.dark .btn-success {
+  background-color: var(--dark-success);
+  color: #fff;
+  border: none;
+  font-weight: bold;
+  transition: background-color 0.2s ease;
+}
+
+body.dark .product-card button:hover,
+body.dark .btn-success:hover {
+  background-color: var(--dark-success-hover);
+}
+
+
+/* --- Tables --- */
+body.dark .admin-table-container table {
+  background-color: var(--dark-surface);
+  border-collapse: collapse;
+}
+body.dark .admin-table-container th,
+body.dark .admin-table-container td {
+  border: 1px solid var(--dark-border);
+}
+body.dark .admin-table-container thead {
+  background-color: #303642; /* A shade between surface and border */
+}
+body.dark .admin-table-container tbody tr:nth-child(even) {
+  background-color: #2c313a;
+}
+body.dark .admin-table-container tbody tr:hover {
+  background-color: var(--dark-border);
+}
+
+/* --- Links --- */
+body.dark a {
+  color: var(--dark-accent-primary);
+}
+body.dark a:hover {
+  filter: brightness(1.2);
+}
+
+/* --- Dark Mode Toggle --- */
+.dark-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-right: 1rem;
+  color: inherit;
+  padding: 0.5rem;
+  border-radius: 50%;
+}
+.dark-toggle:hover {
+    background-color: var(--dark-border);
+}

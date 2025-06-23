@@ -1,0 +1,139 @@
+.login-page-wrapper {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.login-welcome-panel {
+    flex: 1;
+    background-color: #a00000; /* Koyu kırmızı tonu */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
+    text-align: center;
+}
+
+/* === YENİ STİL: Logo için === */
+.login-logo-img {
+    max-width: 300px;
+    margin-bottom: 2rem;
+}
+
+/* Eski .login-brand stili kaldırıldı */
+
+.login-welcome-panel h2 {
+    font-size: 2.5rem;
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+.login-form-panel {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #fff;
+}
+
+.login-form-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-form h2 {
+    text-align: left;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.form-group input {
+    border: none;
+    border-bottom: 1px solid #ccc;
+    border-radius: 0;
+    padding: 0.75rem 0.25rem;
+}
+.form-group input:focus {
+    border-bottom-color: #a00000;
+    box-shadow: none;
+    outline: none;
+}
+
+.form-options {
+    text-align: right;
+    margin-bottom: 2rem;
+}
+.form-options a {
+    font-size: 0.9rem;
+    color: #007bff;
+    text-decoration: none;
+}
+
+.submit-btn {
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #6c757d;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.submit-btn:hover {
+    background-color: #5a6268;
+}
+
+.form-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 1.5rem 0;
+    color: #ccc;
+}
+.form-divider::before, .form-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid #ccc;
+}
+.form-divider span {
+    padding: 0 1rem;
+}
+
+.register-btn {
+    display: block;
+    width: 100%;
+    padding: 0.8rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #17a2b8;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+.register-btn:hover {
+    background-color: #138496;
+}
+
+.error-message {
+  color: #721c24;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  padding: 0.75rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}

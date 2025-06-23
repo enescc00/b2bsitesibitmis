@@ -1,97 +1,228 @@
+/* MyOrdersPage.css */
 .my-orders-page {
-  max-width: 1000px;
-  margin: 2rem auto;
-  padding: 2rem;
+  padding: 1rem;
+  background-color: #f9fafb; /* Lighter background for the page */
+  border-radius: 8px;
 }
 
-.loading-container, .error-container {
-    text-align: center;
-    padding: 3rem;
-    font-size: 1.2rem;
+.my-orders-page h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .order-filters {
   display: flex;
-  gap: 0.5rem;
-  margin: 1rem 0 2rem 0;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 2rem;
 }
 
 .filter-btn {
-  padding: 0.6rem 1rem;
-  border: 1px solid #ccc;
-  background-color: #f8f9fa;
-  border-radius: 20px;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid transparent; /* Start with transparent border */
+  border-radius: 50px;
   cursor: pointer;
   font-size: 0.9rem;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.2s ease-in-out;
 }
 
 .filter-btn:hover {
-  background-color: #e2e6ea;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
+/* Default state for Tümü button */
+.filter-btn-tumu {
+  background-color: #f3f4f6;
+  color: #374151;
+  border-color: #d1d5db;
+}
+
+/* Colored buttons */
+.filter-btn-devam-edenler {
+  background-color: #dbeafe;
+  color: #1e40af;
+  border-color: #bfdbfe;
+}
+
+.filter-btn-teslim-edilenler {
+  background-color: #d1fae5;
+  color: #065f46;
+  border-color: #a7f3d0;
+}
+
+.filter-btn-iptaller {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+/* --- Active States --- */
 .filter-btn.active {
-  background-color: #007bff;
-  color: white;
-  border-color: #007bff;
+  color: #ffffff;
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+}
+
+.filter-btn-tumu.active {
+  background-color: #4f46e5; /* Indigo */
+  border-color: #4f46e5;
+}
+
+.filter-btn-devam-edenler.active {
+  background-color: #3b82f6; /* Stronger Blue */
+  border-color: #2563eb;
+}
+
+.filter-btn-teslim-edilenler.active {
+  background-color: #10b981; /* Stronger Green */
+  border-color: #059669;
+}
+
+.filter-btn-iptaller.active {
+  background-color: #ef4444; /* Stronger Red */
+  border-color: #dc2626;
 }
 
 .order-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 
 .order-card {
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px; /* Softer radius */
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  overflow: hidden; /* Ensures child elements respect the border-radius */
+}
+
+.order-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 .order-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-bottom: 1px solid #ddd;
+  padding: 1rem 1.5rem;
+  background-color: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .order-info {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+}
+
+.order-info span:first-child {
+  font-size: 0.8rem;
+  color: #6b7280;
+  text-transform: uppercase;
+}
+
+.order-info span:last-child {
   font-size: 0.9rem;
-  color: #555;
+  font-weight: 500;
+  color: #374151;
+  font-family: 'Courier New', Courier, monospace;
 }
 
 .order-status {
-  padding: 0.4rem 0.8rem;
-  border-radius: 15px;
-  font-weight: bold;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  border-radius: 50px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.order-status i {
   font-size: 0.9rem;
 }
 
-/* Farklı durumlar için renkler */
-.status-beklemede, .status-hazırlanıyor { background-color: #ffc107; color: #333; }
-.status-kargoya-verildi { background-color: #17a2b8; color: white; }
-.status-teslim-edildi { background-color: #28a745; color: white; }
-.status-iptal-edildi { background-color: #dc3545; color: white; }
+/* New Status Colors & Styles */
+.status-onay-bekliyor { background-color: #fef3c7; color: #92400e; } /* Amber */
+.status-hazırlanıyor { background-color: #dbeafe; color: #1e40af; } /* Blue */
+.status-kargoya-verildi { background-color: #e0e7ff; color: #3730a3; } /* Indigo */
+.status-teslim-edildi { background-color: #d1fae5; color: #065f46; } /* Green */
+.status-iptal-edildi { background-color: #fee2e2; color: #991b1b; } /* Red */
+
+/* Backordered badge */
+.badge-backordered {
+  display: inline-block;
+  background-color: #fef9c3; /* light yellow */
+  color: #92400e;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.6rem;
+  border-radius: 9999px;
+  margin-right: 0.5rem;
+}
+
+.backordered-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cancel-backorder-btn {
+  background-color: transparent;
+  color: #991b1b;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.cancel-backorder-btn:hover {
+  text-decoration: underline;
+}
 
 
 .order-body {
-  padding: 1rem;
+  padding: 1.5rem;
 }
 
 .order-item {
-  padding: 0.5rem 0;
+  padding: 0.75rem 0;
+  font-size: 0.95rem;
+  color: #374151;
+}
+
+.order-item:not(:last-child) {
+  border-bottom: 1px dashed #e5e7eb;
 }
 
 .order-footer {
-  padding: 1rem;
-  background-color: #f8f9fa;
+  padding: 1rem 1.5rem;
+  background-color: #f9fafb;
   text-align: right;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #e5e7eb;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.order-footer strong {
+  color: #4f46e5; /* Match active button color */
+}
+
+.no-orders-message {
+  text-align: center;
+  padding: 4rem 2rem;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  color: #6b7280;
 }

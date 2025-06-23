@@ -1,61 +1,211 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useContext } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// Bileşenler ve Sayfalar...
-import Navbar from './components/Navbar';
+// Context'ler ve Provider'ları import ediyoruz
+import { AuthProvider, AuthContext } from './context/AuthContext';
+import LoadingScreen from './components/LoadingScreen';
+import { CartProvider, CartContext } from './context/CartContext';
+import { WishlistProvider } from './context/WishlistContext';
+
+// Rota Koruyucuları
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+import SalesRepRoute from './components/salesrep/SalesRepRoute';
+import SupplierRoute from './components/SupplierRoute';
+import SupplierLayout from './components/supplier/SupplierLayout';
+
+// Layout ve Genel Bileşenler
+import Navbar from './components/Navbar';
+import SidebarCart from './components/SidebarCart';
+import BackToTopButton from './components/ui/BackToTopButton';
 import AdminLayout from './components/admin/AdminLayout';
-import HomePage from './pages/HomePage';
-import ProductsPage from './pages/ProductsPage';
+import SalesRepLayout from './components/salesrep/SalesRepLayout';
+import ProfileLayout from './pages/profile/ProfileLayout';
+
+// Genel Sayfalar
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
+import ProductsPage from './pages/ProductsPage';
+import ProductDetailPage from './pages/ProductDetailPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+
+// Profil Sayfaları
 import MyOrdersPage from './pages/profile/MyOrdersPage';
 import UserInfoPage from './pages/profile/UserInfoPage';
+import WishlistPage from './pages/profile/WishlistPage';
+import MyQuotesPage from './pages/profile/MyQuotesPage';
+import AccountStatementPage from './pages/profile/AccountStatementPage';
+
+// Admin Sayfaları
 import DashboardPage from './pages/admin/DashboardPage';
 import UserListPage from './pages/admin/UserListPage';
 import UserEditPage from './pages/admin/UserEditPage';
-import ProductListPage from './pages/admin/ProductListPage';
+
+
 import ProductEditPage from './pages/admin/ProductEditPage';
 import OrderListPage from './pages/admin/OrderListPage';
-import CategoryListPage from './pages/admin/CategoryListPage'; // YENİ
-import CategoryEditPage from './pages/admin/CategoryEditPage'; // YENİ
+import PaymentTrackingPage from './pages/admin/PaymentTrackingPage';
+import OrderDetailPage from './pages/admin/OrderDetailPage';
+import CategoryListPage from './pages/admin/CategoryListPage';
+import CategoryEditPage from './pages/admin/CategoryEditPage';
+import SettingsPage from './pages/admin/SettingsPage';
+import InventoryPage from './pages/admin/InventoryPage';
+import ProductListPage from './pages/admin/ProductListPage';
+import ProductTreeListPage from './pages/admin/ProductTreeListPage';
+import ProductTreeEditPage from './pages/admin/ProductTreeEditPage';
+import QuoteListPage from './pages/admin/QuoteListPage';
+import QuoteEditPage from './pages/admin/QuoteEditPage';
+import BackordersPage from './pages/admin/BackordersPage';
 
+// Satış Temsilcisi Sayfaları
+import SalesRepDashboardPage from './pages/salesrep/SalesRepDashboardPage';
+import MyCustomersPage from './pages/salesrep/MyCustomersPage';
+import NewOrderPage from './pages/salesrep/NewOrderPage';
+import NewQuotePage from './pages/shared/NewQuotePage';
+import CashboxPage from './pages/salesrep/CashboxPage';
+import QuotesPage from './pages/salesrep/QuotesPage';
+import OrdersPage from './pages/supplier/OrdersPage';
+import ProductAddPage from './pages/supplier/ProductAddPage';
+import AccountPage from './pages/supplier/AccountPage';
+import SalesRepOrderDetailPage from './pages/salesrep/OrderDetailPage';
+import PendingOrdersPage from './pages/salesrep/PendingOrdersPage';
+import CustomerStatementPage from './pages/salesrep/CustomerStatementPage';
+
+// Genel Stil Dosyası
 import './App.css';
 
+// Müşteri Arayüzü İçin Ana Layout Bileşeni
+const MainLayout = () => {
+  const { isCartOpen } = useContext(CartContext);
+  return (
+    <div className={`app-wrapper ${isCartOpen ? 'sidebar-active' : ''}`}>
+      <div className="main-content">
+        <Navbar />
+        <main><Outlet /></main>
+      </div>
+      <SidebarCart />
+      <BackToTopButton />
+    </div>
+  );
+};
+
+// Ana Rotaları İçeren İçerik Bileşeni
+const AppContent = () => {
+    const { loading } = useContext(AuthContext);
+
+    // AuthContext yüklenirken bekleme ekranı göster
+    if (loading) {
+        return <LoadingScreen />;
+    }
+
+    return (
+        <Routes>
+            {/* Routes without MainLayout */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+
+            {/* Admin Routes with AdminLayout */}
+            <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
+                <Route path="orders" element={<OrderListPage />} />
+                <Route path="orders/page/:pageNumber" element={<OrderListPage />} />
+                <Route path="order/:id" element={<OrderDetailPage />} />
+                <Route path="payments" element={<PaymentTrackingPage />} />
+                <Route index element={<DashboardPage />} />
+                <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="users" element={<UserListPage />} />
+                <Route path="users/page/:pageNumber" element={<UserListPage />} />
+                <Route path="user/:id/edit" element={<UserEditPage />} />
+                <Route path="products" element={<ProductListPage />} />
+                <Route path="products/page/:pageNumber" element={<ProductListPage />} />
+                <Route path="product/new" element={<ProductEditPage />} />
+                <Route path="product/:id" element={<ProductEditPage />} />
+                <Route path="categories" element={<CategoryListPage />} />
+                <Route path="category/new" element={<CategoryEditPage />} />
+                <Route path="category/:id" element={<CategoryEditPage />} />
+                <Route path="settings" element={<SettingsPage />} />
+                {/* Orders Routes */}
+                <Route path="orders" element={<OrderListPage />} />
+                <Route path="orders/page/:pageNumber" element={<OrderListPage />} />
+                <Route path="order/:id" element={<OrderDetailPage />} />
+                <Route path="inventory" element={<InventoryPage />} />
+                <Route path="product-trees" element={<ProductTreeListPage />} />
+                <Route path="product-tree/new" element={<ProductTreeEditPage />} />
+                <Route path="product-tree/:id" element={<ProductTreeEditPage />} />
+                <Route path="backorders" element={<BackordersPage />} />
+                <Route path="quotes" element={<QuoteListPage />} />
+                <Route path="quote/:id" element={<QuoteEditPage />} />
+            </Route>
+
+            {/* Supplier Routes with SupplierLayout */}
+            <Route path="/supplier" element={<SupplierRoute><SupplierLayout /></SupplierRoute>}>
+                <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="products" element={<ProductListPage />} />
+                <Route path="product/new" element={<ProductAddPage />} />
+                <Route path="orders" element={<OrdersPage />} />
+                <Route path="account" element={<AccountPage />} />
+            </Route>
+
+            {/* SalesRep Routes with SalesRepLayout */}
+            <Route path="/portal" element={<SalesRepRoute><SalesRepLayout /></SalesRepRoute>}>
+                <Route path="dashboard" element={<SalesRepDashboardPage />} />
+                <Route path="pending-orders" element={<PendingOrdersPage />} />
+                <Route path="orders" element={<OrdersPage />} />
+                <Route path="orders/:orderId" element={<SalesRepOrderDetailPage />} />
+                <Route path="customers" element={<MyCustomersPage />} />
+                <Route path="quotes" element={<QuotesPage />} />
+                <Route path="customers/:customerId/statement" element={<CustomerStatementPage />} />
+                <Route path="new-order" element={<NewOrderPage />} />
+                <Route path="new-order/:customerId" element={<NewOrderPage />} />
+                <Route path="new-quote" element={<NewQuotePage />} />
+                <Route path="cashbox" element={<CashboxPage />} />
+            </Route>
+            
+            {/* Main application routes with MainLayout */}
+            <Route path="/" element={<ProtectedRoute><MainLayout/></ProtectedRoute>}>
+                {/* Profile pages with ProfileLayout */}
+                <Route path="profile" element={<ProfileLayout/>}>
+                    <Route path="info" element={<UserInfoPage />} />
+                    <Route path="orders" element={<MyOrdersPage />} />
+                    <Route path="quotes" element={<MyQuotesPage />} />
+                    <Route path="wishlist" element={<WishlistPage />} />
+                    <Route path="statement" element={<AccountStatementPage />} />
+                </Route>
+
+                {/* Other main pages */}
+                <Route index element={<Navigate to="/products" replace />} />
+                <Route path="products" element={<ProductsPage />} />
+                <Route path="products/page/:pageNumber" element={<ProductsPage />} />
+                <Route path="search/:keyword" element={<ProductsPage />} />
+                <Route path="search/:keyword/page/:pageNumber" element={<ProductsPage />} />
+                <Route path="category/:categoryId" element={<ProductsPage />} />
+                <Route path="category/:categoryId/page/:pageNumber" element={<ProductsPage />} />
+                <Route path="product/:id" element={<ProductDetailPage />} />
+                <Route path="cart" element={<CartPage />} />
+                <Route path="checkout" element={<CheckoutPage />} />
+                <Route path="new-quote" element={<NewQuotePage />} />
+            </Route>
+
+            {/* A catch-all for any other path, maybe redirect to products or a 404 page */}
+            <Route path="*" element={<Navigate to="/products" replace />} />
+        </Routes>
+    );
+};
+
+// Ana Uygulama Bileşeni
 function App() {
   return (
     <Router>
-      <Navbar />
-      <main>
-        <Routes>
-          {/* ... Genel ve Kullanıcı Rotaları ... */}
-          <Route path="/" element={<HomePage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-          <Route path="/profile/orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
-          <Route path="/profile/info" element={<ProtectedRoute><UserInfoPage /></ProtectedRoute>} />
-          
-          <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
-            <Route index element={<DashboardPage />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="users" element={<UserListPage />} />
-            <Route path="user/:id" element={<UserEditPage />} />
-            <Route path="products" element={<ProductListPage />} />
-            <Route path="product/new" element={<ProductEditPage />} />
-            <Route path="product/:id" element={<ProductEditPage />} />
-            <Route path="orders" element={<OrderListPage />} />
-            <Route path="categories" element={<CategoryListPage />} /> {/* YENİ */}
-            <Route path="category/new" element={<CategoryEditPage />} /> {/* YENİ */}
-            <Route path="category/:id" element={<CategoryEditPage />} /> {/* YENİ */}
-          </Route>
-        </Routes>
-      </main>
+      <AuthProvider>
+        <CartProvider>
+          <WishlistProvider>
+            <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} />
+            <AppContent />
+          </WishlistProvider>
+        </CartProvider>
+      </AuthProvider>
     </Router>
   );
 }

@@ -1,182 +1,241 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { AuthContext } from '../../context/AuthContext';
 import './AdminForm.css';
 
 function ProductEditPage() {
-  const { id: productId } = useParams();
-  const navigate = useNavigate();
-  const { authToken } = useContext(AuthContext);
+    const { id: productId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { authToken } = useContext(AuthContext);
 
-  const [productData, setProductData] = useState({
-    name: '', price: 0, image: '', description: '', category: '', stock: 0
-  });
-  
-  const [categories, setCategories] = useState([]);
-  const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
+    const isNewProduct = !productId;
 
-  const isNewProduct = !productId;
+    const [formData, setFormData] = useState({
+        name: '', images: [], description: '', category: '',
+        components: [], sku: '', warrantyPeriod: '2 Yıl',
+        specifications: [], boxContents: [],
+        costPrice: 0, profitMargin: 20, salePrice: 0,
+        stock: 0, isActive: true,
+    });
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [newImageFiles, setNewImageFiles] = useState([]); // For new file uploads
 
-  // 1. useEffect: Sadece kategorileri çekmek için
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const res = await fetch('http://localhost:5001/api/categories');
-        const data = await res.json();
-        if (!res.ok) throw new Error('Kategoriler yüklenemedi.');
-        setCategories(data);
-      } catch (err) {
-        setError(err.message);
-        console.error(err);
-      }
+    useEffect(() => {
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                const catRes = await fetch('http://localhost:5001/api/categories', { headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (!catRes.ok) throw new Error('Kategoriler alınamadı.');
+                const catData = await catRes.json();
+                setCategories(catData);
+
+                if (isNewProduct) {
+                    const { newProductFromTree, inventoryItem } = location.state || {};
+                    if (newProductFromTree) {
+                        setFormData(prev => ({ ...prev, name: newProductFromTree.name, costPrice: newProductFromTree.costPrice, components: newProductFromTree.components }));
+                    } else if (inventoryItem) {
+                        setFormData(prev => ({ ...prev, name: inventoryItem.name, costPrice: inventoryItem.unitPrice, components: [{ inventoryItem: inventoryItem._id, quantity: 1 }] }));
+                    }
+                } else {
+                    const productRes = await fetch(`http://localhost:5001/api/products/${productId}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                    if (!productRes.ok) throw new Error('Ürün verileri alınamadı.');
+                    const productToEdit = await productRes.json();
+                    productToEdit.images = productToEdit.images || [];
+                    productToEdit.specifications = productToEdit.specifications || [];
+                    productToEdit.boxContents = productToEdit.boxContents || [];
+                    setFormData({ ...formData, ...productToEdit, category: productToEdit.category?._id });
+                }
+            } catch (error) {
+                toast.error(error.message);
+                setError(error.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+        if (authToken) fetchInitialData();
+    }, [productId, isNewProduct, authToken, location.state]);
+
+    useEffect(() => {
+        const cost = parseFloat(formData.costPrice) || 0;
+        const margin = parseFloat(formData.profitMargin) || 0;
+        setFormData(prev => ({ ...prev, salePrice: cost * (1 + margin / 100) }));
+    }, [formData.costPrice, formData.profitMargin]);
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
     };
-    fetchCategories();
-  }, []);
 
-  // 2. useEffect: Ürün bilgilerini çekmek veya yeni ürün formunu hazırlamak için
-  useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        setLoading(true);
-        const res = await fetch(`http://localhost:5001/api/products/${productId}`);
-        const fetchedProductData = await res.json();
-        if (!res.ok) throw new Error(fetchedProductData.msg || 'Ürün bilgileri bulunamadı.');
-        
-        setProductData({
-          name: fetchedProductData.name || '',
-          price: fetchedProductData.price || 0,
-          image: fetchedProductData.image || '',
-          description: fetchedProductData.description || '',
-          category: fetchedProductData.category?._id || '', // Kategori ID'sini al
-          stock: fetchedProductData.stock || 0
-        });
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (isNewProduct) {
-      // Yeni ürün ise, formu boşalt ve kategoriler yüklendiyse ilkini seç
-      setProductData({
-        name: '', price: 0, image: '', description: '', 
-        category: categories.length > 0 ? categories[0]._id : '', 
-        stock: 0
-      });
-      setLoading(false);
-    } else {
-      // Mevcut ürün ise, bilgilerini çek
-      fetchProduct();
-    }
-  }, [productId, isNewProduct, categories]); // Artık 'categories' yüklendiğinde de tetiklenir
-
-
-  const handleChange = (e) => {
-    setProductData({ ...productData, [e.target.name]: e.target.value });
-  };
-  
-  const uploadFileHandler = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const formData = new FormData();
-    formData.append('image', file);
-    setUploading(true);
-    setError('');
-    try {
-        const config = { method: 'POST', headers: { 'Authorization': `Bearer ${authToken}` }, body: formData };
-        const response = await fetch('http://localhost:5001/api/upload', config);
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.message || 'Resim yüklenemedi.');
-        setProductData({ ...productData, image: data.image });
-    } catch (err) {
-        setError(err.message);
-    } finally {
-        setUploading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(''); 
-    setSuccess('');
-
-    const url = isNewProduct ? 'http://localhost:5001/api/products' : `http://localhost:5001/api/products/${productId}`;
-    const method = isNewProduct ? 'POST' : 'PUT';
-
-    try {
-        const response = await fetch(url, {
-            method: method,
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
-            body: JSON.stringify(productData)
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.msg || 'İşlem başarısız.');
-        setSuccess(`Ürün başarıyla ${isNewProduct ? 'oluşturuldu' : 'güncellendi'}.`);
-        if (isNewProduct) {
-          navigate(`/admin/product/${data._id}`);
+    const handleFileChange = (e) => {
+        if (e.target.files) {
+            // Filter out files that might already be selected to avoid duplicates
+            const newFiles = Array.from(e.target.files);
+            setNewImageFiles(prevFiles => [...prevFiles, ...newFiles]);
         }
-    } catch (err) {
-        setError(err.message);
-    } finally {
-        setLoading(false);
-    }
-  };
+    };
 
-  if (loading) return <div className="loading-container">Yükleniyor...</div>;
-  if (error) return <div className="admin-page-container"><div className="error-message">Hata: {error}</div></div>;
+    const handleRemoveImage = (image) => {
+        // If it's a string, it's an existing image URL from the server
+        if (typeof image === 'string') {
+            setFormData(prev => ({ ...prev, images: prev.images.filter(img => img !== image) }));
+        } else {
+            // If it's an object, it's a new File object to be uploaded
+            setNewImageFiles(prevFiles => prevFiles.filter(file => file !== image));
+        }
+    };
 
-  return (
-    <div className="admin-page-container">
-      <button onClick={() => navigate('/admin/products')} className="back-btn"> &larr; Ürün Listesine Dön</button>
-      <h1>{isNewProduct ? 'Yeni Ürün Ekle' : 'Ürünü Düzenle'}</h1>
-      <form onSubmit={handleSubmit} className="admin-form">
-        {success && <p className="success-message">{success}</p>}
-        {error && !success && <p className="error-message">{error}</p>}
-        <div className="form-grid">
-            <div className="form-group grid-span-2">
-                <label htmlFor="name">Ürün Adı</label>
-                <input type="text" id="name" name="name" value={productData.name} onChange={handleChange} required />
-            </div>
-            <div className="form-group">
-                <label htmlFor="price">Fiyat (₺)</label>
-                <input type="number" id="price" name="price" step="0.01" value={productData.price} onChange={handleChange} required />
-            </div>
-            <div className="form-group">
-                <label htmlFor="stock">Stok Adedi</label>
-                <input type="number" id="stock" name="stock" value={productData.stock} onChange={handleChange} required />
-            </div>
-            <div className="form-group grid-span-2">
-                <label htmlFor="image-file-input">Ürün Görseli</label>
-                {productData.image && <img src={`http://localhost:5001${productData.image}`} alt={productData.name} className="image-preview" />}
-                <input type="text" id="image" name="image" placeholder="Görsel yolu" value={productData.image} onChange={handleChange} required />
-                <input type="file" id="image-file-input" onChange={uploadFileHandler} className="file-input"/>
-                {uploading && <p>Yükleniyor...</p>}
-            </div>
-            <div className="form-group grid-span-2">
-                <label htmlFor="category">Kategori</label>
-                <select id="category" name="category" value={productData.category} onChange={handleChange} required>
-                    <option value="">Kategori Seçiniz</option>
-                    {categories.map(cat => (
-                        <option key={cat._id} value={cat._id}>{cat.name}</option>
+    const handleDynamicChange = (e, index, field, listName) => {
+        const updatedList = [...formData[listName]];
+        updatedList[index][field] = e.target.value;
+        setFormData(prev => ({ ...prev, [listName]: updatedList }));
+    };
+
+    const handleAddRow = (listName, newRowObject) => {
+        setFormData(prev => ({ ...prev, [listName]: [...prev[listName], newRowObject] }));
+    };
+
+    const handleRemoveRow = (index, listName) => {
+        const updatedList = [...formData[listName]];
+        updatedList.splice(index, 1);
+        setFormData(prev => ({ ...prev, [listName]: updatedList }));
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+
+        const submissionData = new FormData();
+
+        // Append all form fields
+        Object.keys(formData).forEach(key => {
+            if (key !== 'images' && key !== 'specifications' && key !== 'boxContents' && key !== 'components') {
+                submissionData.append(key, formData[key]);
+            }
+        });
+
+        // Handle arrays of objects by stringifying them
+        submissionData.append('specifications', JSON.stringify(formData.specifications));
+        submissionData.append('boxContents', JSON.stringify(formData.boxContents));
+        submissionData.append('components', JSON.stringify(formData.components));
+
+        // Append existing images for the PUT request
+        if (!isNewProduct) {
+            formData.images.forEach(imgUrl => {
+                submissionData.append('existingImages', imgUrl);
+            });
+        }
+
+        // Append new image files
+        newImageFiles.forEach(file => {
+            submissionData.append('images', file);
+        });
+
+        const url = isNewProduct ? 'http://localhost:5001/api/products' : `http://localhost:5001/api/products/${productId}`;
+        const method = isNewProduct ? 'POST' : 'PUT';
+
+        try {
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Authorization': `Bearer ${authToken}` }, // Don't set Content-Type, browser does it for FormData
+                body: submissionData
+            });
+
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.msg || 'İşlem başarısız.');
+            toast.success(`Ürün başarıyla ${isNewProduct ? 'oluşturuldu' : 'güncellendi'}.`);
+            navigate('/admin/products');
+        } catch (err) {
+            toast.error(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) return <div>Yükleniyor...</div>;
+    if (error) return <div className="error-container">Hata: {error}.</div>;
+
+    return (
+        <div className="admin-page-container">
+            <button onClick={() => navigate('/admin/products')} className="back-btn"> &larr; Satış Ürünleri Listesine Dön</button>
+            <h1>{isNewProduct ? 'Yeni Satış Ürünü Ekle' : 'Ürünü Düzenle'}</h1>
+            <form onSubmit={handleSubmit} className="admin-form">
+                <div className="form-section">
+                    <h3>Temel Bilgiler</h3>
+                    <div className="form-group">
+                        <label>Ürün Resimleri</label>
+                        <div className="image-previews">
+                            {/* Display existing images */}
+                            {formData.images.map((img, index) => (
+                                <div key={`existing-${index}`} className="image-preview-item">
+                                    <img src={img} alt={`Mevcut Resim ${index + 1}`} />
+                                    <button type="button" onClick={() => handleRemoveImage(img)} className="delete-img-btn">X</button>
+                                </div>
+                            ))}
+                            {/* Display new images selected for upload */}
+                            {newImageFiles.map((file, index) => (
+                                <div key={`new-${index}`} className="image-preview-item">
+                                    <img src={URL.createObjectURL(file)} alt={`Yeni Resim ${index + 1}`} />
+                                    <button type="button" onClick={() => handleRemoveImage(file)} className="delete-img-btn">X</button>
+                                </div>
+                            ))}
+                        </div>
+                        <input type="file" multiple onChange={handleFileChange} className="file-input" accept="image/*" />
+                    </div>
+                    <div className="form-grid">
+                        <div className="form-group"> <label>Ürün Adı</label> <input type="text" name="name" value={formData.name} onChange={handleChange} required /> </div>
+                        <div className="form-group"> <label>Kategori</label> <select name="category" value={formData.category} onChange={handleChange} required> <option value="">Kategori Seçiniz</option> {categories.map(cat => <option key={cat._id} value={cat._id}>{cat.name}</option>)} </select> </div>
+                        <div className="form-group"> <label>Stok Kodu (SKU)</label> <input type="text" name="sku" value={formData.sku} onChange={handleChange} /> </div>
+                        <div className="form-group"> <label>Garanti Süresi</label> <input type="text" name="warrantyPeriod" value={formData.warrantyPeriod} onChange={handleChange} /> </div>
+                        <div className="form-group grid-span-2"> <label>Açıklama</label> <textarea name="description" value={formData.description} onChange={handleChange} rows="5" required></textarea> </div>
+                    </div>
+                </div>
+                <div className="form-section">
+                    <h3>Teknik Özellikler</h3>
+                    {formData.specifications.map((spec, index) => (
+                        <div key={index} className="dynamic-form-row">
+                            {/* === DÜZELTME: required özelliği eklendi === */}
+                            <input type="text" placeholder="Özellik Adı (örn: Renk)" value={spec.key} onChange={(e) => handleDynamicChange(e, index, 'key', 'specifications')} required />
+                            <input type="text" placeholder="Özellik Değeri (örn: Siyah)" value={spec.value} onChange={(e) => handleDynamicChange(e, index, 'value', 'specifications')} required />
+                            <button type="button" onClick={() => handleRemoveRow(index, 'specifications')} className="remove-row-btn">Sil</button>
+                        </div>
                     ))}
-                </select>
-            </div>
-             <div className="form-group grid-span-2">
-                <label htmlFor="description">Açıklama</label>
-                <textarea id="description" name="description" rows="5" value={productData.description} onChange={handleChange} required></textarea>
-            </div>
+                    <button type="button" onClick={() => handleAddRow('specifications', { key: '', value: '' })} className="add-row-btn">Özellik Ekle</button>
+                </div>
+                <div className="form-section">
+                    <h3>Kutu İçeriği</h3>
+                    {formData.boxContents.map((content, index) => (
+                         <div key={index} className="dynamic-form-row">
+                             {/* === DÜZELTME: required özelliği eklendi === */}
+                            <input type="text" placeholder="Ürün (örn: Tepe Duşu)" value={content.item} onChange={(e) => handleDynamicChange(e, index, 'item', 'boxContents')} required />
+                            <input type="number" placeholder="Adet" value={content.quantity} onChange={(e) => handleDynamicChange(e, index, 'quantity', 'boxContents')} style={{maxWidth: '100px'}} required />
+                            <button type="button" onClick={() => handleRemoveRow(index, 'boxContents')} className="remove-row-btn">Sil</button>
+                        </div>
+                    ))}
+                    <button type="button" onClick={() => handleAddRow('boxContents', { item: '', quantity: 1 })} className="add-row-btn">Kutu İçeriği Ekle</button>
+                </div>
+                <div className="form-section">
+                    <h3>Fiyatlandırma ve Stok</h3>
+                    <div className="form-grid">
+                        <div className="form-group"> <label>Maliyet Fiyatı (TL)</label> <input type="number" name="costPrice" value={formData.costPrice} onChange={handleChange} required /> </div>
+                        <div className="form-group"> <label>Kâr Marjı (%)</label> <input type="number" name="profitMargin" value={formData.profitMargin} onChange={handleChange} /> </div>
+                        <div className="form-group"> <label>Hesaplanan Satış Fiyatı (TL)</label> <input type="text" value={formData.salePrice.toFixed(2)} readOnly /> </div>
+                        <div className="form-group"> <label>Stok Adedi</label> <input type="number" name="stock" value={formData.stock} onChange={handleChange} required /> </div>
+                    </div>
+                </div>
+                <div className="form-group form-group-checkbox">
+                    <label htmlFor="isActive">Satışta Aktif mi?</label>
+                    <input type="checkbox" id="isActive" name="isActive" checked={formData.isActive} onChange={handleChange} />
+                </div>
+                <button type="submit" className="submit-btn" disabled={loading}>
+                    {isNewProduct ? 'Ürünü Oluştur' : 'Değişiklikleri Kaydet'}
+                </button>
+            </form>
         </div>
-        <button type="submit" className="submit-btn" disabled={loading || uploading}>
-            {loading || uploading ? 'Kaydediliyor...' : (isNewProduct ? 'Ürünü Oluştur' : 'Değişiklikleri Kaydet')}
-        </button>
-      </form>
-    </div>
-  );
+    );
 }
 
 export default ProductEditPage;

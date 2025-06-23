@@ -1,0 +1,81 @@
+.cashbox-page h1 {
+    margin-top: 0;
+    margin-bottom: 2rem;
+}
+
+.cashbox-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    padding: 1.5rem;
+    border-radius: 8px;
+    color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.summary-card h4 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 0.9;
+}
+
+.summary-card p {
+    margin: 0;
+    font-size: 1.8rem;
+    font-weight: 700;
+}
+
+.income-card { background-color: #27ae60; }
+.expense-card { background-color: #c0392b; }
+.balance-card { background-color: #2980b9; }
+
+.cashbox-main-content {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 2rem;
+}
+
+.transaction-list-container, .expense-form-container {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.transaction-list-container h2, .expense-form-container h2 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.transaction-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.transaction-table th, .transaction-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f0f0f0;
+    text-align: left;
+}
+
+.transaction-table th {
+    font-weight: 600;
+}
+
+.transaction-amount.income {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.transaction-amount.expense {
+    color: #c0392b;
+    font-weight: bold;
+}

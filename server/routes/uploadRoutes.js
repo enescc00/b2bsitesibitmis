@@ -2,8 +2,8 @@ const path = require('path');
 const express = require('express');
 const multer = require('multer');
 const router = express.Router();
-const { protect } = require('../middleware/authMiddleware');
-const { admin } = require('../middleware/adminMiddleware');
+// === DÜZELTME BURADA ===
+const { protect, admin } = require('../middleware/authMiddleware');
 
 // Multer için depolama ayarları
 const storage = multer.diskStorage({

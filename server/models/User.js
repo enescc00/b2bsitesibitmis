@@ -1,44 +1,72 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// Adres için ayrı bir şema tanımlamak daha temiz bir yöntemdir.
 const AddressSchema = new Schema({
     addressTitle: { type: String, required: true, default: 'Varsayılan Adres' },
-    province: { type: String, required: true }, // İl
-    district: { type: String, required: true }, // İlçe
-    fullAddress: { type: String, required: true } // Açık Adres
+    province: { type: String, required: true },
+    district: { type: String, required: true }, 
+    fullAddress: { type: String, required: true }
 });
 
 const baseOptions = {
-  discriminatorKey: '__t', // Hangi tipte bir kullanıcı olduğunu belirten alan
-  collection: 'users',      // Hepsinin 'users' koleksiyonunda saklanmasını sağlar
-  timestamps: true          // createdAt ve updatedAt alanlarını otomatik ekler
+  discriminatorKey: '__t',
+  collection: 'users',      
+  timestamps: true          
 };
 
-// Ortak alanlar
 const baseUserSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
-  role: { type: String, default: 'customer' },
+  password: { type: String, required: true, select: false },
+  
+  // === GÜNCELLEME: Yeni "sales_rep" rolü eklendi ===
+  role: { 
+      type: String, 
+      enum: ['customer', 'supplier', 'sales_rep', 'admin'],
+      default: 'customer' 
+  },
+  
+  isApproved: { type: Boolean, default: false },
+  
+  // === YENİ ALANLAR ===
+  // Müşterinin hangi pazarlamacıya bağlı olduğunu tutar
+  salesRepresentative: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  // Pazarlamacının kendi kasasını tutar
+  cashboxBalance: {
+      type: Number,
+      default: 0
+  },
+
   currentAccountBalance: { type: Number, default: 0 },
-  // DEĞİŞİKLİK: Adres artık bir dizi (array)
-  addresses: [AddressSchema]
+  addresses: [AddressSchema],
+  wishlist: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
+  refreshTokens: { type: [String], default: [] }
 }, baseOptions);
 
 const User = mongoose.model('User', baseUserSchema);
 
-// Bireysel Kullanıcı için ek alanlar
 const IndividualUser = User.discriminator('IndividualUser', new Schema({
   tcKimlik: { type: String, required: true, unique: true },
-  taxOffice: { type: String, required: true }, 
+  taxOffice: { type: String } 
 }));
 
-// Kurumsal Kullanıcı için ek alanlar
 const CorporateUser = User.discriminator('CorporateUser', new Schema({
   companyTitle: { type: String, required: true },
   taxNumber: { type: String, required: true, unique: true },
   taxOffice: { type: String, required: true },
 }));
 
-module.exports = { User, IndividualUser, CorporateUser };
+const SupplierUser = User.discriminator('SupplierUser', new Schema({
+  companyTitle: { type: String, required: true },
+  taxNumber: { type: String, required: true, unique: true },
+  taxOffice: { type: String, required: true },
+  iban: { type: String },
+  contactPerson: { type: String },
+  phone: { type: String }
+}));
+
+module.exports = { User, IndividualUser, CorporateUser, SupplierUser };

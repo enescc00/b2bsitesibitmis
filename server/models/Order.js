@@ -1,24 +1,26 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const OrderItemSchema = new Schema({
+    name: { type: String, required: true },
+    qty: { type: Number, required: true },
+    price: { type: Number, required: true },
+    product: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        ref: 'Product'
+    }
+}, {_id: false});
+
+
 const OrderSchema = new Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
     ref: 'User'
   },
-  orderItems: [
-    {
-      name: { type: String, required: true },
-      qty: { type: Number, required: true },
-      price: { type: Number, required: true },
-      product: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'Product'
-      }
-    }
-  ],
+  orderItems: [OrderItemSchema],
+  backorderedItems: [OrderItemSchema], // Bu alanı bir önceki adımdan eklemiştik
   shippingAddress: {
     addressTitle: { type: String, required: true },
     province: { type: String, required: true },
@@ -35,15 +37,27 @@ const OrderSchema = new Schema({
     required: true,
     default: 0.0
   },
-  // isPaid ve isDelivered yerine yeni status alanı
+  originalTotalPrice: {
+    type: Number,
+    default: 0.0
+  },
+  packagesCount: { type: Number, default: 1 },
+  // === DEĞİŞİKLİK: Sipariş onayı için yeni durum eklendi ===
   status: {
     type: String,
     required: true,
-    enum: ['Beklemede', 'Hazırlanıyor', 'Kargoya Verildi', 'Teslim Edildi', 'İptal Edildi'],
-    default: 'Beklemede'
+    // Yeni durum: 'Onay Bekliyor'
+    enum: ['Onay Bekliyor', 'Beklemede', 'Hazırlanıyor', 'Kargoya Verildi', 'Teslim Edildi', 'İptal Edildi', 'Kısmi Tamamlandı'],
+    // Müşteri sipariş geçtiğinde varsayılan durum bu olacak
+    default: 'Onay Bekliyor'
   },
+  createdBy: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  }
 }, {
-  timestamps: true // createdAt ve updatedAt alanlarını otomatik ekler
+  timestamps: true
 });
 
 module.exports = mongoose.model('Order', OrderSchema);

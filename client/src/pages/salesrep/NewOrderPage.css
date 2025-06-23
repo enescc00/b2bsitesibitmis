@@ -1,0 +1,178 @@
+.order-creation-page {
+    padding: 0;
+}
+
+.order-creation-header {
+    background-color: #fff;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+}
+
+.order-creation-header h1 {
+    margin: 0;
+}
+.order-creation-header .customer-name {
+    font-size: 1.2rem;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.order-creation-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    gap: 2rem;
+}
+
+.product-selection-area {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.product-selection-area .search-form {
+    margin-bottom: 1.5rem;
+}
+
+.order-summary-sidebar {
+    background-color: #fff;
+    padding: 1.5rem;
+    border-radius: 8px;
+    height: fit-content;
+    position: sticky;
+    top: 2rem;
+}
+
+.order-summary-sidebar h3 {
+    margin-top: 0;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+}
+
+.summary-item-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.summary-item-name {
+    flex-grow: 1;
+    margin-right: 1rem;
+}
+
+.summary-item-qty {
+    display: flex;
+    align-items: center;
+}
+
+.qty-input {
+    width: 60px;
+    text-align: center;
+    padding: 0.3rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    margin-right: 0.5rem;
+}
+
+/* Tarayıcıların varsayılan artırma/azaltma oklarını gizle */
+.qty-input::-webkit-outer-spin-button,
+.qty-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.qty-input[type=number] {
+    -moz-appearance: textfield;
+}
+
+.summary-item-price {
+    font-weight: 500;
+}
+
+.summary-total {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 2px solid #343a40;
+    display: flex;
+    justify-content: space-between;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.place-order-btn {
+    width: 100%;
+    padding: 0.8rem;
+    margin-top: 1.5rem;
+    border: none;
+    border-radius: 4px;
+    background-color: #28a745;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+.place-order-btn:disabled {
+    background-color: #6c757d;
+}
+
+/* Teklif Sayfası Özel Stilleri */
+.quote-note-container {
+    margin-top: 1.5rem;
+}
+
+.quote-note-container label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #495057;
+}
+
+.quote-note-container textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    resize: vertical;
+}
+
+.quote-btn {
+    background-color: #007bff; /* Mavi renk */
+}
+
+.quote-btn:hover {
+    background-color: #0056b3;
+}
+
+.summary-empty-msg {
+    text-align: center;
+    color: #6c757d;
+    padding: 2rem 0;
+}
+
+.remove-item-btn {
+    background: none;
+    border: none;
+    color: #dc3545;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+}
+
+.remove-item-btn:hover {
+    color: #a71d2a;
+}
