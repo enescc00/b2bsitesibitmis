@@ -30,9 +30,9 @@ const productRoutes = require('./routes/products');
 const productTreeRoutes = require('./routes/productTreeRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
-const userRoutes = require('./routes/users');
+const userRoutes = require('./routes/usersMain');
 const quoteRoutes = require('./routes/quotes');
-const salesrepRoutes = require('./routes/salesrep');
+const salesrepRoutes = require('./routes/salesrepRoutes');
 const supplierRoutes = require('./routes/supplier'); // Bu satır eklendi
 const errorMiddleware = require('./middleware/errorMiddleware');
 
@@ -68,8 +68,7 @@ mongoose.connect(MONGO_URI, {
 
 
 // API ROTALARINI TANIMLAMA
-// Hata ayıklama için tüm API rotaları geçici olarak devre dışı bırakıldı
-/* app.use('/api/admin', adminRoutes);
+app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/costing', costingRoutes);
 app.use('/api/salesrep', salesrepRoutes);
@@ -83,7 +82,7 @@ app.use('/api/upload', uploadRoutes);
 // Tüm /api/users isteklerini ana kullanıcı yönlendiricisine gönder
 app.use('/api/users', userRoutes);
 app.use('/api/quotes', quoteRoutes);
-app.use('/api/supplier', supplierRoutes); // Bu satır değiştirildi */
+app.use('/api/supplier', supplierRoutes); // Bu satır değiştirildi
 
 
 // ZAMANLANMIŞ GÖREV (CRON JOB)
