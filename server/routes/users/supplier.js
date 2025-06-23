@@ -48,6 +48,6 @@ router.post('/register', [
 
   await newSupplier.save();
   res.status(201).json({ msg: 'Tedarikçi kaydı başarıyla alındı. Hesabınız yönetici onayından sonra aktif olacak.'});
-}));
+}))
 
 module.exports = router;
