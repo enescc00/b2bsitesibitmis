@@ -33,6 +33,7 @@ const uploadRoutes = require('./routes/uploadRoutes');
 const userRoutes = require('./routes/users');
 const quoteRoutes = require('./routes/quotes');
 const salesrepRoutes = require('./routes/salesrep');
+const supplierRoutes = require('./routes/supplier'); // Bu satır eklendi
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 // EXPRESS UYGULAMASINI OLUŞTURMA
@@ -81,8 +82,7 @@ app.use('/api/upload', uploadRoutes);
 // Tüm /api/users isteklerini ana kullanıcı yönlendiricisine gönder
 app.use('/api/users', userRoutes);
 app.use('/api/quotes', quoteRoutes);
-const supplierRoutes = require('./routes/supplier');
-app.use('/api/supplier', supplierRoutes);
+app.use('/api/supplier', supplierRoutes); // Bu satır değiştirildi
 
 
 // ZAMANLANMIŞ GÖREV (CRON JOB)
