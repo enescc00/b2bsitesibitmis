@@ -68,7 +68,8 @@ mongoose.connect(MONGO_URI, {
 
 
 // API ROTALARINI TANIMLAMA
-app.use('/api/admin', adminRoutes);
+// Hata ayıklama için tüm API rotaları geçici olarak devre dışı bırakıldı
+/* app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/costing', costingRoutes);
 app.use('/api/salesrep', salesrepRoutes);
@@ -82,7 +83,7 @@ app.use('/api/upload', uploadRoutes);
 // Tüm /api/users isteklerini ana kullanıcı yönlendiricisine gönder
 app.use('/api/users', userRoutes);
 app.use('/api/quotes', quoteRoutes);
-app.use('/api/supplier', supplierRoutes); // Bu satır değiştirildi
+app.use('/api/supplier', supplierRoutes); // Bu satır değiştirildi */
 
 
 // ZAMANLANMIŞ GÖREV (CRON JOB)
