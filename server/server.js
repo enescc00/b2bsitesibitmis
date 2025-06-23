@@ -100,16 +100,18 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // ÜRETİM (PRODUCTION) ORTAMI İÇİN YAPILANDIRMA
-/* if (process.env.NODE_ENV === 'production') {
+/*
+if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/build')));
     app.get('/*', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
     });
-} */ else {
+} else {
     app.get('/', (req, res) => {
         res.send('B2B API çalışıyor... (Geliştirme Modu)');
     });
 }
+*/
 
 
 // HATA YÖNETİMİ (ERROR HANDLING) ORTA KATMANI
