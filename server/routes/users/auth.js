@@ -196,4 +196,20 @@ router.post('/logout', asyncHandler(async (req, res, next) => {
     res.json({ msg: 'Çıkış yapıldı' });
 }));
 
+// @route GET /api/users/auth/verifytoken
+// @desc Verify token validity
+// @access Private
+router.get('/verifytoken', protect, asyncHandler(async (req, res) => {
+    // Token valid ise protect middleware'den geçer ve buraya gelir
+    res.status(200).json({ valid: true, user: req.user });
+}));
+
+// @route GET /api/users/verifytoken (Legacy support)
+// @desc Verify token validity (for backwards compatibility)
+// @access Private
+router.get('/verifytoken', protect, asyncHandler(async (req, res) => {
+    // Eski versiyon için aynı işlevi görür
+    res.status(200).json({ valid: true, user: req.user });
+}));
+
 module.exports = router;
