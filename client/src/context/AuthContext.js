@@ -51,13 +51,14 @@ export const AuthProvider = ({ children }) => {
       // URL rewrite
       let target = input;
       if (typeof target === 'string') {
-          if (target.startsWith('http://localhost:5001')) {
-            target = target.replace('http://localhost:5001', API_BASE_URL);
-          } else if (target.startsWith('/')) {
-            // Relative path starting with / -> prepend base URL
-            target = API_BASE_URL + target;
-          }
-              }
+        if (target.startsWith('http://localhost:5001')) {
+          target = target.replace('http://localhost:5001', API_BASE_URL);
+        } else if (target.startsWith('/')) {
+          // URL'leri birleştirirken oluşabilecek çift /api veya // sorunlarını çözen daha sağlam bir yapı
+          const combinedUrl = `${API_BASE_URL.replace(/\/$/, '')}${target}`;
+          target = combinedUrl.replace('/api/api/', '/api/');
+        }
+      }
 
       let response = await originalFetch(target, newInit);
       if (response.status === 401) {
