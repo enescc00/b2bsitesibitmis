@@ -39,13 +39,31 @@ app.use(morgan('combined', { stream: logger.stream }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// /api/api/ tekrarlamasını düzeltecek ara yazılım
+// URL yapılandırma sorunlarını düzeltecek gelişmiş ara yazılım
 app.use((req, res, next) => {
-    const doubleApiPattern = /\/api\/api\//;
-    if (doubleApiPattern.test(req.url)) {
-        req.url = req.url.replace(doubleApiPattern, '/api/');
-        console.log(`URL düzeltildi: ${req.url}`);
+    // API URL sorunlarını düzeltmek için regex kullanımı
+    const patterns = [
+        { pattern: /\/api\/api\//, replacement: '/api/' }, // Çift /api/api/ sorununu düzelt
+        { pattern: /\/api\/users\/api\//, replacement: '/api/users/' }, // /api/users/api/ sorununu düzelt
+        { pattern: /connect(\d+)/, replacement: (match, p1) => `connect${p1}` } // connect1 vb. için yapılandırma
+    ];
+    
+    let originalUrl = req.url;
+    let changed = false;
+    
+    // Tüm regex düzeltmelerini uygula
+    patterns.forEach(({ pattern, replacement }) => {
+        if (pattern.test(req.url)) {
+            req.url = req.url.replace(pattern, replacement);
+            changed = true;
+        }
+    });
+    
+    // URL değiştiyse log kaydı tut
+    if (changed) {
+        console.log(`URL düzeltildi: ${originalUrl} -> ${req.url}`);
     }
+    
     next();
 });
 app.use(cookieParser());
