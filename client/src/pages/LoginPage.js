@@ -44,38 +44,35 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-page-wrapper">
-      <div className="login-welcome-panel">
-        {/* === DEĞİŞİKLİK 1: Yazı yerine logo eklendi === */}
-        <img 
-            src="https://www.curkuslar.com.tr/wp-content/uploads/2021/10/CMS-LOGO-380.png" 
-            alt="Bay Yazılım Logo" 
-            className="login-logo-img"
-        />
-        <h2>Hoşgeldiniz</h2>
-        {/* === DEĞİŞİKLİK 2: Demo bilgi kutusu kaldırıldı === */}
-      </div>
-      <div className="login-form-panel">
-        <div className="login-form-container">
-          <form onSubmit={handleSubmit} className="auth-form">
-            <h2>BAYİ GİRİŞİ</h2>
-            {error && <p className="error-message">{error}</p>}
-            <div className="form-group">
-              <label htmlFor="email">Kullanıcı Adı *</label>
-              <input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label htmlFor="password">Şifre *</label>
-              <input type="password" id="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
-            <div className="form-options">
-                <Link to="/forgot-password">Şifremi Unuttum?</Link>
-            </div>
-            <button type="submit" className="submit-btn">Giriş Yap</button>
-            <div className="form-divider"><span>VEYA</span></div>
-            <Link to="/register" className="register-btn">Yeni Hesap Oluştur</Link>
-          </form>
-        </div>
+    <div className="login-page-container">
+      <div className="glass-form-container">
+        <h2>Bayi Girişi</h2>
+        <form onSubmit={handleSubmit}>
+          {error && <p className="login-error-message">{error}</p>}
+          <div className="login-form-group">
+            <input
+              type="email"
+              className="login-input"
+              placeholder="E-posta Adresi"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
+          <div className="login-form-group">
+            <input
+              type="password"
+              className="login-input"
+              placeholder="Şifre"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          <button type="submit" className="login-button">
+            Giriş Yap
+          </button>
+        </form>
       </div>
     </div>
   );
