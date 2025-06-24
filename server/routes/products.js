@@ -94,68 +94,123 @@ router.get('/:id', async (req, res) => {
 });
 
 // @route   POST /api/products (Yeni ürün oluşturma)
-// Cloudinary hatasını önlemek için upload.array middleware'ini geçici olarak kaldırıldı
-router.post('/', protect, admin, [
-    body('name', 'Ürün adı zorunludur').not().isEmpty().trim().escape(),
-], async (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) { return res.status(400).json({ errors: errors.array() }); }
-    
-    // Form verilerini doğru şekilde çözümleme
-    const { name, description, category, sku, warrantyPeriod, costPrice, profitMargin, salePrice, stock } = req.body;
-    
-    // JSON olarak gönderilen alanları parse etme
-    let specifications = [];
-    let boxContents = [];
-    let components = [];
-    let isActive = true;
+router.post('/', protect, admin, upload.array('images', 10), async (req, res) => {
+    console.log('Ürün oluşturma isteği başladı');
+    console.log('İstek gövdesi:', req.body);
+    console.log('İstek dosyaları:', req.files ? req.files.length : 'Yok');
     
     try {
-        // JSON stringlerini kontrol edip parse etme
-        if (req.body.specifications) specifications = JSON.parse(req.body.specifications);
-        if (req.body.boxContents) boxContents = JSON.parse(req.body.boxContents);
-        if (req.body.components) components = JSON.parse(req.body.components);
-        if (req.body.isActive !== undefined) isActive = req.body.isActive === 'true' || req.body.isActive === true;
-    } catch (e) {
-        console.error('JSON parse hatası:', e);
-        return res.status(400).json({ msg: 'Formda geçersiz JSON verileri var', error: e.message });
-    }
-    
-    // Cloudinary hatasını geçici olarak önlemek için sabit resim URL'leri kullanalım
-    // Bu placehold.co ve picsum.photos geçici resim URL'leri
-    const images = req.files 
-        ? req.files.map(file => file.path) 
-        : [
-            'https://via.placeholder.com/500',
-            'https://picsum.photos/id/26/500/500'
-          ];
+        // İstek doğrulama - zorunlu alanları kontrol et
+        const requiredFields = ['name', 'description', 'category'];
+        for (const field of requiredFields) {
+            if (!req.body[field]) {
+                console.error(`Zorunlu alan eksik: ${field}`);
+                return res.status(400).json({ 
+                    message: `Zorunlu alan eksik: ${field}`,
+                    field: field
+                });
+            }
+        }
+        
+        // Form verilerini çözümle ve doğru tiplere dönüştür
+        const formData = {
+            name: req.body.name,
+            description: req.body.description,
+            category: req.body.category,
+            sku: req.body.sku || '',
+            warrantyPeriod: req.body.warrantyPeriod || ''
+        };
+        
+        // Sayısal alanları dönüştür
+        formData.costPrice = req.body.costPrice ? parseFloat(req.body.costPrice) : 0;
+        formData.profitMargin = req.body.profitMargin ? parseFloat(req.body.profitMargin) : 0;
+        formData.salePrice = req.body.salePrice ? parseFloat(req.body.salePrice) : 0;
+        formData.stock = req.body.stock ? parseInt(req.body.stock) : 0;
+        
+        // Boolean değerleri dönüştür
+        formData.isActive = req.body.isActive === 'true' || req.body.isActive === true;
+        
+        // JSON alanlarını parse et
+        formData.specifications = [];
+        formData.boxContents = [];
+        formData.components = [];
+        
+        try {
+            // Mevcut resimleri dizi olarak ekle
+            formData.existingImages = [];
+            if (req.body.existingImages) {
+                // Tekil değer mi yoksa dizi mi kontrol et
+                if (Array.isArray(req.body.existingImages)) {
+                    formData.existingImages = req.body.existingImages;
+                } else {
+                    formData.existingImages = [req.body.existingImages];
+                }
+            }
+            
+            // JSON alanlarını parse et, geçersiz olanlara boş dizi ata
+            if (req.body.specifications) {
+                try {
+                    formData.specifications = JSON.parse(req.body.specifications);
+                    if (!Array.isArray(formData.specifications)) {
+                        formData.specifications = [];
+                    }
+                } catch (e) { formData.specifications = []; }
+            }
+            
+            if (req.body.boxContents) {
+                try {
+                    formData.boxContents = JSON.parse(req.body.boxContents);
+                    if (!Array.isArray(formData.boxContents)) {
+                        formData.boxContents = [];
+                    }
+                } catch (e) { formData.boxContents = []; }
+            }
+            
+            if (req.body.components) {
+                try {
+                    formData.components = JSON.parse(req.body.components);
+                    if (!Array.isArray(formData.components)) {
+                        formData.components = [];
+                    }
+                } catch (e) { formData.components = []; }
+            }
+        } catch (e) {
+            console.error('Form veri dönüşüm hatası:', e);
+        }
+        
+        // Resim URL'leri için mevcut resimler veya varsayılan placeholder kullan
+        formData.images = formData.existingImages.length > 0 
+            ? formData.existingImages 
+            : ['https://via.placeholder.com/500'];
+        
+        // Yüklenen yeni dosyalar varsa ekle
+        if (req.files && req.files.length > 0) {
+            formData.images = [...formData.images, ...req.files.map(file => file.path)];
+        }
 
-    try { 
-        // Daha iyi hata ayıklama için form verilerini kontrol etme
-        console.log('Form verileri:', { 
-            name, description, category, sku, warrantyPeriod,
-            costPrice, profitMargin, salePrice, stock, isActive,
-            specificationsLength: specifications.length,
-            boxContentsLength: boxContents.length,
-            componentsLength: components.length,
-            imageCount: images.length
+        // Ürün nesnesini oluştur
+        const product = new Product({ 
+            name: formData.name, 
+            images: formData.images,
+            description: formData.description, 
+            category: formData.category, 
+            components: formData.components, 
+            sku: formData.sku, 
+            warrantyPeriod: formData.warrantyPeriod, 
+            specifications: formData.specifications, 
+            boxContents: formData.boxContents, 
+            costPrice: formData.costPrice, 
+            profitMargin: formData.profitMargin, 
+            salePrice: formData.salePrice, 
+            stock: formData.stock, 
+            isActive: formData.isActive 
         });
         
-        const product = new Product({ 
-            name, 
-            images, // Use URLs from Cloudinary
-            description, 
-            category, 
-            components, 
-            sku, 
-            warrantyPeriod, 
-            specifications, 
-            boxContents, 
-            costPrice, 
-            profitMargin, 
-            salePrice, 
-            stock, 
-            isActive 
+        console.log('Ürün nesnesi oluşturuldu, değerler:', {
+            costPrice: product.costPrice,
+            stock: product.stock,
+            name: product.name,
+            category: product.category
         });
         
         // Doğrulama hatalarını yakalamak için validateSync kullan
