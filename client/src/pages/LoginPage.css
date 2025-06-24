@@ -7,10 +7,7 @@
 
 .login-welcome-panel {
     flex: 1;
-    /* background-color, background-image etc. are now controlled by inline styles */
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-color: rgba(80, 0, 0, 0.75); /* %75 şeffaflıkta daha koyu kırmızı */
     color: white;
     display: flex;
     flex-direction: column;
@@ -18,6 +15,10 @@
     align-items: center;
     padding: 2rem;
     text-align: center;
+    border-radius: 15px; /* Paneli daha modern göstermek için kenarları yuvarla */
+    backdrop-filter: blur(8px); /* Arkadaki görseli hafifçe bulanıklaştırır (tarayıcı desteği gerekir) */
+    -webkit-backdrop-filter: blur(8px); /* Safari için */
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* === YENİ STİL: Logo için === */
