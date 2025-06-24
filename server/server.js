@@ -26,6 +26,10 @@ const errorMiddleware = require('./middleware/errorMiddleware');
 
 // EXPRESS UYGULAMASINI OLUŞTURMA
 const app = express();
+// Render ve diğer proxy ortamlarında doğru IP tespiti ve rate limit için
+// 'trust proxy' ayarlamak gerekir. Aksi halde express-rate-limit X-Forwarded-For
+// başlığından dolayı hata fırlatır.
+app.set('trust proxy', 1);
 
 // ORTA KATMAN YAZILIMLARI (MIDDLEWARE)
 const corsOptions = {
