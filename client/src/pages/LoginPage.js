@@ -44,35 +44,46 @@ function LoginPage() {
   };
 
   return (
-    <div className="login-page-container">
-      <div className="glass-form-container">
-        <h2>Bayi Girişi</h2>
-        <form onSubmit={handleSubmit}>
-          {error && <p className="login-error-message">{error}</p>}
-          <div className="login-form-group">
-            <input
-              type="email"
-              className="login-input"
-              placeholder="E-posta Adresi"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
+    <div className="login-page-body">
+      <div className="ring">
+        <i style={{'--clr': '#00ff0a'}}></i>
+        <i style={{'--clr': '#ff0057'}}></i>
+        <i style={{'--clr': '#fffd44'}}></i>
+        <div className="login">
+          <h2>Bayi Girişi</h2>
+          <form onSubmit={handleSubmit}>
+            {error && <p className="login-error-message">{error}</p>}
+            <div className="inputBx">
+              <input 
+                type="email" 
+                placeholder="E-posta"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="inputBx">
+              <input 
+                type="password" 
+                placeholder="Şifre"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="inputBx">
+              <input 
+                type="submit" 
+                value={loading ? "Giriş..." : "Giriş Yap"} 
+                disabled={loading}
+              />
+            </div>
+          </form>
+          <div className="links">
+            <Link to="/forgot-password">Şifremi Unuttum</Link>
+            <Link to="/register">Kayıt Ol</Link>
           </div>
-          <div className="login-form-group">
-            <input
-              type="password"
-              className="login-input"
-              placeholder="Şifre"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="login-button">
-            Giriş Yap
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );

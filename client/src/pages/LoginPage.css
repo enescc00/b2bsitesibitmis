@@ -1,43 +1,128 @@
-/* LoginPage.css - Glassmorphism Tasarımı */
-.login-page-container {
+/* LoginPage.css - Animated Ring Tasarımı */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+.login-page-body {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  width: 100vw;
-  background-image: url('../assets/app-bg.png');
-  background-size: cover;
-  background-position: center;
-  font-family: 'Segoe UI', 'Roboto', sans-serif;
+  min-height: 100vh;
+  background: #23242a;
+  font-family: 'Poppins', sans-serif;
 }
 
-.glass-form-container {
-  background: rgba(15, 15, 25, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 20px;
-  padding: 2.5rem 3rem;
+.ring {
+  position: relative;
+  width: 380px;
+  height: 380px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ring i {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #fff;
+  transition: 0.5s;
+}
+
+.ring i:nth-child(1) {
+  border-radius: 38% 62% 63% 37% / 41% 44% 56% 59%;
+  animation: animate 6s linear infinite;
+}
+
+.ring i:nth-child(2) {
+  border-radius: 41% 44% 56% 59% / 38% 62% 63% 37%;
+  animation: animate 4s linear infinite;
+}
+
+.ring i:nth-child(3) {
+  border-radius: 41% 44% 56% 59% / 38% 62% 63% 37%;
+  animation: animate2 10s linear infinite;
+}
+
+.ring:hover i {
+  border: 6px solid var(--clr);
+  filter: drop-shadow(0 0 20px var(--clr));
+}
+
+@keyframes animate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes animate2 {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.login {
+  position: absolute;
+  width: 300px;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.login h2 {
+  font-size: 2em;
+  color: #fff;
+}
+
+.inputBx {
+  position: relative;
   width: 100%;
-  max-width: 420px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  color: white;
-    font-weight: bold;
-    cursor: pointer;
-    text-align: center;
-    text-decoration: none;
-    transition: background-color 0.2s ease;
-}
-.register-btn:hover {
-    background-color: #138496;
 }
 
-.error-message {
-  color: #721c24;
-  background-color: #f8d7da;
-  border: 1px solid #f5c6cb;
-  padding: 0.75rem;
-  border-radius: 4px;
-  margin-bottom: 1.5rem;
-  text-align: center;
+.inputBx input {
+  position: relative;
+  width: 100%;
+  padding: 12px 20px;
+  background: transparent;
+  border: 2px solid #fff;
+  border-radius: 40px;
+  font-size: 1.2em;
+  color: #fff;
+  box-shadow: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.inputBx input::placeholder {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.inputBx input[type="submit"] {
+  background: #0078ff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.inputBx input[type="submit"]:hover {
+    background: #005fcc;
+}
+
+.links {
+  position: relative;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.links a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.login-error-message {
+    color: #ff4d4d;
+    margin-bottom: 10px;
+    font-size: 0.9em;
+    text-align: center;
 }
