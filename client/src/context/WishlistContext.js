@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { AuthContext } from './AuthContext';
 import { toast } from 'react-toastify';
+import { API_BASE_URL } from '../config/api';
 
 export const WishlistContext = createContext();
 
@@ -11,7 +12,7 @@ export const WishlistProvider = ({ children }) => {
     const fetchWishlist = async () => {
         if (!authToken) return;
         try {
-            const res = await fetch('http://localhost:5001/api/users/wishlist', {
+            const res = await fetch(`${API_BASE_URL}/api/users/wishlist`, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
             const data = await res.json();
@@ -26,7 +27,7 @@ export const WishlistProvider = ({ children }) => {
 
     const addToWishlist = async (productId) => {
         try {
-            const res = await fetch('http://localhost:5001/api/users/wishlist', {
+            const res = await fetch(`${API_BASE_URL}/api/users/wishlist`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify({ productId })
@@ -41,7 +42,7 @@ export const WishlistProvider = ({ children }) => {
 
     const removeFromWishlist = async (productId) => {
         try {
-            const res = await fetch(`http://localhost:5001/api/users/wishlist/${productId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/users/wishlist/${productId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
