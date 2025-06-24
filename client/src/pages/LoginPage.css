@@ -7,7 +7,10 @@
 
 .login-welcome-panel {
     flex: 1;
-    background-color: #a00000; /* Koyu kırmızı tonu */
+    background-image: url('/images/login-bg.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     color: white;
     display: flex;
     flex-direction: column;
