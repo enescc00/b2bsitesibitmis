@@ -97,20 +97,18 @@ cron.schedule('0 0 * * *', () => {
 // STATİK DOSYALARA ERİŞİM (Resimler vb. için)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// React build dosyalarını sun
+app.use(express.static(path.join(__dirname, 'public')));
 
-// ÜRETİM (PRODUCTION) ORTAMI İÇİN YAPILANDIRMA
-// Serve static files from the public folder
-if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, 'public')));
-    // Use named wildcard parameter for catch-all route
-    app.get('/*any', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    });
-} else {
-    app.get('/', (req, res) => {
-        res.send('B2B API çalışıyor... (Geliştirme Modu)');
-    });
-}
+// Tüm API route'ları /api/ ile başlamalı
+app.use('/api', (req, res, next) => {
+    next();
+});
+
+// Tüm diğer istekleri React uygulamasına yönlendir
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 
 // HATA YÖNETİMİ (ERROR HANDLING) ORTA KATMANI
