@@ -1,5 +1,7 @@
 export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
 
+export const assetUrl = (path = '') => `${API_BASE_URL}${path}`;
+
 export const api = {
   salesrep: {
     pendingOrders: `${API_BASE_URL}/api/salesrep/pending-orders`,

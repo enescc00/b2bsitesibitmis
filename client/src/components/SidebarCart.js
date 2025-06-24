@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import './SidebarCart.css';
+import { assetUrl } from '../config/api';
 
 function SidebarCart() {
     const { cartItems, removeFromCart, isCartOpen, closeCart } = useContext(CartContext);
@@ -23,7 +24,7 @@ function SidebarCart() {
                     cartItems.map(item => (
                         <div key={item._id} className="sidebar-cart-item">
                             <img 
-                                src={item.images && item.images.length > 0 ? `http://localhost:5001${item.images[0]}` : 'https://via.placeholder.com/60x60?text=No+Image'} 
+                                src={item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://via.placeholder.com/60x60?text=No+Image'} 
                                 alt={item.name} 
                             />
                             <div className="item-details">
