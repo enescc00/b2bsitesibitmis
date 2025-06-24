@@ -6,16 +6,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-image: url('./assets/app-bg.png');
-  background-size: 105%; /* Başlangıçta biraz büyük */
-  background-position: center;
-  background-attachment: fixed;
-  transition: background-size 0.8s ease-out; /* Animasyon için geçiş */
-  overflow: hidden; /* Kenar boşluklarını engelle */
-}
-
-body:hover {
-  background-size: 100%; /* Fare üzerine gelince normale döndür */
+  background-color: #f8f9fa; /* Orijinal arka plan rengi */
 }
 
 main {
@@ -44,7 +35,7 @@ a {
 }
 
 .main-content {
-  background-color: transparent; /* Global arka planın görünmesi için */
+  background-color: #f8f9fa; /* Orijinal arka plan rengi */
   min-height: 100vh;
   /* margin-right ve transform için geçiş efekti */
   transition: margin-right 0.4s ease-in-out, transform 0.4s ease-in-out;

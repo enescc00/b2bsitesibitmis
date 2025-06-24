@@ -1,127 +1,27 @@
-.login-page-wrapper {
-    display: flex;
-    width: 100vw;
-    height: 100vh;
-    overflow: hidden;
+/* LoginPage.css - Glassmorphism Tasarımı */
+.login-page-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-image: url('../assets/app-bg.png');
+  background-size: cover;
+  background-position: center;
+  font-family: 'Segoe UI', 'Roboto', sans-serif;
 }
 
-.login-welcome-panel {
-    flex: 1;
-    background-color: rgba(80, 0, 0, 0.75); /* %75 şeffaflıkta daha koyu kırmızı */
-    color: white;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    padding: 2rem;
-    text-align: center;
-    border-radius: 15px; /* Paneli daha modern göstermek için kenarları yuvarla */
-    backdrop-filter: blur(8px); /* Arkadaki görseli hafifçe bulanıklaştırır (tarayıcı desteği gerekir) */
-    -webkit-backdrop-filter: blur(8px); /* Safari için */
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-/* === YENİ STİL: Logo için === */
-.login-logo-img {
-    max-width: 300px;
-    margin-bottom: 2rem;
-}
-
-/* Eski .login-brand stili kaldırıldı */
-
-.login-welcome-panel h2 {
-    font-size: 2.5rem;
-    margin-top: 1rem;
-    font-weight: 500;
-}
-
-.login-form-panel {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-color: #fff;
-}
-
-.login-form-container {
-    width: 100%;
-    max-width: 400px;
-}
-
-.auth-form h2 {
-    text-align: left;
-    margin-bottom: 2rem;
-    color: #333;
-}
-
-.form-group label {
-    font-size: 0.9rem;
-    color: #666;
-}
-
-.form-group input {
-    border: none;
-    border-bottom: 1px solid #ccc;
-    border-radius: 0;
-    padding: 0.75rem 0.25rem;
-}
-.form-group input:focus {
-    border-bottom-color: #a00000;
-    box-shadow: none;
-    outline: none;
-}
-
-.form-options {
-    text-align: right;
-    margin-bottom: 2rem;
-}
-.form-options a {
-    font-size: 0.9rem;
-    color: #007bff;
-    text-decoration: none;
-}
-
-.submit-btn {
-    width: 100%;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #6c757d;
-    color: white;
-    font-size: 1.1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-.submit-btn:hover {
-    background-color: #5a6268;
-}
-
-.form-divider {
-    display: flex;
-    align-items: center;
-    text-align: center;
-    margin: 1.5rem 0;
-    color: #ccc;
-}
-.form-divider::before, .form-divider::after {
-    content: '';
-    flex: 1;
-    border-bottom: 1px solid #ccc;
-}
-.form-divider span {
-    padding: 0 1rem;
-}
-
-.register-btn {
-    display: block;
-    width: 100%;
-    padding: 0.8rem;
-    border: none;
-    border-radius: 4px;
-    background-color: #17a2b8;
-    color: white;
-    font-size: 1.1rem;
+.glass-form-container {
+  background: rgba(15, 15, 25, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2.5rem 3rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  color: white;
     font-weight: bold;
     cursor: pointer;
     text-align: center;
