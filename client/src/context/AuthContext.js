@@ -54,9 +54,22 @@ export const AuthProvider = ({ children }) => {
         if (target.startsWith('http://localhost:5001')) {
           target = target.replace('http://localhost:5001', API_BASE_URL);
         } else if (target.startsWith('/')) {
-          // URL'leri birleştirirken oluşabilecek çift /api veya // sorunlarını çözen daha sağlam bir yapı
-          const combinedUrl = `${API_BASE_URL.replace(/\/$/, '')}${target}`;
-          target = combinedUrl.replace('/api/api/', '/api/');
+          // URL'leri birleştirirken çift /api sorununu çözecek gelişmiş mantık
+          const baseWithoutSlash = API_BASE_URL.replace(/\/$/, ''); // Sondaki / varsa kaldır
+          const pathWithoutApiPrefix = target.replace(/^\/api\//, '/'); // Baştaki /api/ varsa kaldır
+          
+          // Birleştirilmiş URL oluştur, API_BASE_URL'in /api içerip içermediğine göre kontrol yap
+          let combinedUrl;
+          if (baseWithoutSlash.endsWith('/api')) {
+            // Base URL'de zaten /api varsa, path'den /api'yi kaldırıp birleştir
+            combinedUrl = `${baseWithoutSlash}${pathWithoutApiPrefix}`;
+          } else {
+            // Base URL'de /api yoksa, path'deki /api'yi koru
+            combinedUrl = `${baseWithoutSlash}${target}`;
+          }
+          
+          // Yine de oluşmuş olabilecek /api/api/ durumunu temizle
+          target = combinedUrl.replace(/\/api\/api\//g, '/api/');
         }
       }
 
