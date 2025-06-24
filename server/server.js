@@ -19,21 +19,9 @@ const logger = require('./utils/logger');
 const cron = require('node-cron');
 const checkStalePrices = require('./cron/stalePriceChecker');
 
-// ROTA DOSYALARINI İÇERİ AKTARMA
-const adminRoutes = require('./routes/adminRoutes');
-const categoryRoutes = require('./routes/categories');
-const costingRoutes = require('./routes/costingRoutes');
-const inventoryRoutes = require('./routes/inventoryRoutes');
-const orderRoutes = require('./routes/orders');
-const paymentRoutes = require('./routes/payments');
-const productRoutes = require('./routes/products');
-const productTreeRoutes = require('./routes/productTreeRoutes');
-const settingsRoutes = require('./routes/settingsRoutes');
-const uploadRoutes = require('./routes/uploadRoutes');
-const userRoutes = require('./routes/usersMain');
-const quoteRoutes = require('./routes/quotes');
-const salesrepRoutes = require('./routes/salesrepRoutes');
-const supplierRoutes = require('./routes/supplier'); // Bu satır eklendi
+// ROTA DOSYALARI daha önce burada doğrudan require edilip mount ediliyordu.
+// Artık sorunlu route'ları tespit edebilmek için safeMount fonksiyonunu kullanacağız.
+// Aşağıdaki eski require satırları kaldırıldı.
 const errorMiddleware = require('./middleware/errorMiddleware');
 
 // EXPRESS UYGULAMASINI OLUŞTURMA
@@ -67,22 +55,33 @@ mongoose.connect(MONGO_URI, {
 });
 
 
-// API ROTALARINI TANIMLAMA
-app.use('/api/admin', adminRoutes);
-app.use('/api/categories', categoryRoutes);
-app.use('/api/costing', costingRoutes);
-app.use('/api/salesrep', salesrepRoutes);
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/product-trees', productTreeRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/upload', uploadRoutes);
-// Tüm /api/users isteklerini ana kullanıcı yönlendiricisine gönder
-app.use('/api/users', userRoutes);
-app.use('/api/quotes', quoteRoutes);
-app.use('/api/supplier', supplierRoutes); // Bu satır değiştirildi
+// ROTA DOSYALARINI GÜVENLİ ŞEKİLDE MOUNT ETME FONKSİYONU
+const safeMount = (routePath, mountPoint) => {
+    try {
+        const routerModule = require(routePath);
+        app.use(mountPoint, routerModule);
+        console.log(`✅ Mounted ${routePath} -> ${mountPoint}`);
+    } catch (err) {
+        console.error(`❌ Crash mounting ${routePath}`, err);
+        throw err; // Render loglarında görünmesi için hatayı ileri gönder
+    }
+};
+
+// API ROTALARINI TANIMLAMA (SAFE)
+safeMount('./routes/adminRoutes', '/api/admin');
+safeMount('./routes/categories', '/api/categories');
+safeMount('./routes/costingRoutes', '/api/costing');
+safeMount('./routes/salesrepRoutes', '/api/salesrep');
+safeMount('./routes/inventoryRoutes', '/api/inventory');
+safeMount('./routes/orders', '/api/orders');
+safeMount('./routes/payments', '/api/payments');
+safeMount('./routes/products', '/api/products');
+safeMount('./routes/productTreeRoutes', '/api/product-trees');
+safeMount('./routes/settingsRoutes', '/api/settings');
+safeMount('./routes/uploadRoutes', '/api/upload');
+safeMount('./routes/usersMain', '/api/users');
+safeMount('./routes/quotes', '/api/quotes');
+safeMount('./routes/supplier', '/api/supplier');
 
 
 // ZAMANLANMIŞ GÖREV (CRON JOB)
