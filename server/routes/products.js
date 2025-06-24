@@ -178,12 +178,10 @@ router.post('/', protect, admin, upload.array('images', 10), async (req, res) =>
             console.error('Form veri dönüşüm hatası:', e);
         }
         
-        // Resim URL'leri için mevcut resimler veya varsayılan placeholder kullan
-        formData.images = formData.existingImages.length > 0 
-            ? formData.existingImages 
-            : ['https://via.placeholder.com/500'];
-        
-        // Yüklenen yeni dosyalar varsa ekle
+        // Resim URL'leri listesi
+        formData.images = [];
+
+        // 1) Önce yeni yüklenen dosyaları işleyelim
         if (req.files && req.files.length > 0) {
             try {
                 console.log('Yüklenen dosyalar:', req.files);
@@ -209,6 +207,15 @@ router.post('/', protect, admin, upload.array('images', 10), async (req, res) =>
                 console.error('Dosya işleme hatası:', error);
                 // Hata olsa bile geçerli resimlerle devam et
             }
+        }
+
+        // 2) Eğer hâlâ resim yoksa ve existingImages varsa onları kullan
+        if (formData.images.length === 0 && formData.existingImages && formData.existingImages.length > 0) {
+            formData.images = formData.existingImages;
+        }
+        // 3) Hiç resim yoksa placeholder kullan
+        if (formData.images.length === 0) {
+            formData.images = ['https://via.placeholder.com/500'];
         }
 
         // Ürün nesnesini oluştur
