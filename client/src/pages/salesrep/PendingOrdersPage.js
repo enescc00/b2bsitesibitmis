@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
+import { api } from '../../config/api';
 import './PendingOrdersPage.css';
 
 function PendingOrdersPage() {
@@ -17,7 +18,7 @@ function PendingOrdersPage() {
         if (!authToken) return;
         setLoading(true);
         try {
-            const response = await fetch('/api/salesrep/pending-orders', {
+            const response = await fetch(api.salesrep.pendingOrders, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });
             const data = await response.json();
@@ -42,7 +43,7 @@ function PendingOrdersPage() {
 
         if (window.confirm(confirmMessage)) {
             try {
-                const response = await fetch(`/api/salesrep/orders/${orderId}/${action}`, {
+                const response = await fetch(api.salesrep.orderAction(orderId, action), {
                     method: 'PUT',
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
