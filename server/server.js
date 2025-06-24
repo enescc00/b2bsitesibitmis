@@ -102,7 +102,8 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Serve static files from the public folder
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, 'public')));
-    app.get('*', (req, res) => {
+    // Use named wildcard parameter for catch-all route
+    app.get('/*any', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     });
 } else {
