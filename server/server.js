@@ -97,23 +97,17 @@ cron.schedule('0 0 * * *', () => {
 // STATİK DOSYALARA ERİŞİM (Resimler vb. için)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// React build dosyalarını sun
+// Önce API isteklerini işle
+app.use('/api', (req, res, next) => {
+    next(); // API rotalarına devam et
+});
+
+// Statik dosyaları sun
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Tüm API route'ları /api/ ile başlamalı
-app.use((req, res, next) => {
-    if (req.path.startsWith('/api/')) {
-        // API istekleri için next() çağrılıyor
-        return next();
-    }
-    
-    // Eğer dosya bulunamazsa index.html'i gönder (React Router için)
-    if (!req.path.includes('.')) {
-        return res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    }
-    
-    // Diğer statik dosya istekleri için next()
-    next();
+// Tüm diğer istekler için index.html'i gönder (React Router için)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
