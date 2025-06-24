@@ -3,11 +3,14 @@
 
 .login-page-body {
   display: flex;
+  flex-direction: column; /* Stack logo and ring vertically */
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background: #23242a;
   font-family: 'Poppins', sans-serif;
+  padding: 2rem; /* Add padding for safety on small screens */
+  box-sizing: border-box;
 }
 
 .ring {
@@ -113,6 +116,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
+  margin-top: 15px; /* Push links down */
 }
 
 .links a {
@@ -125,4 +129,9 @@
     margin-bottom: 10px;
     font-size: 0.9em;
     text-align: center;
+}
+
+.login-page-logo {
+  max-width: 250px; /* Adjust size as needed */
+  margin-bottom: 2rem; /* Space between logo and ring */
 }
