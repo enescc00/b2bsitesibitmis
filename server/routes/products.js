@@ -100,11 +100,39 @@ router.post('/', protect, admin, upload.array('images', 10), [
     const errors = validationResult(req);
     if (!errors.isEmpty()) { return res.status(400).json({ errors: errors.array() }); }
     
-    const { name, description, category, components, sku, warrantyPeriod, specifications, boxContents, costPrice, profitMargin, salePrice, stock, isActive } = req.body;
+    // Form verilerini doğru şekilde çözümleme
+    const { name, description, category, sku, warrantyPeriod, costPrice, profitMargin, salePrice, stock } = req.body;
+    
+    // JSON olarak gönderilen alanları parse etme
+    let specifications = [];
+    let boxContents = [];
+    let components = [];
+    let isActive = true;
+    
+    try {
+        // JSON stringlerini kontrol edip parse etme
+        if (req.body.specifications) specifications = JSON.parse(req.body.specifications);
+        if (req.body.boxContents) boxContents = JSON.parse(req.body.boxContents);
+        if (req.body.components) components = JSON.parse(req.body.components);
+        if (req.body.isActive !== undefined) isActive = req.body.isActive === 'true' || req.body.isActive === true;
+    } catch (e) {
+        console.error('JSON parse hatası:', e);
+        return res.status(400).json({ msg: 'Formda geçersiz JSON verileri var', error: e.message });
+    }
     
     const images = req.files ? req.files.map(file => file.path) : [];
 
-    try {
+    try { 
+        // Daha iyi hata ayıklama için form verilerini kontrol etme
+        console.log('Form verileri:', { 
+            name, description, category, sku, warrantyPeriod,
+            costPrice, profitMargin, salePrice, stock, isActive,
+            specificationsLength: specifications.length,
+            boxContentsLength: boxContents.length,
+            componentsLength: components.length,
+            imageCount: images.length
+        });
+        
         const product = new Product({ 
             name, 
             images, // Use URLs from Cloudinary
@@ -121,9 +149,19 @@ router.post('/', protect, admin, upload.array('images', 10), [
             stock, 
             isActive 
         });
+        
+        // Doğrulama hatalarını yakalamak için validateSync kullan
+        const validationError = product.validateSync();
+        if (validationError) {
+            console.error('Doğrulama hatası:', validationError);
+            const messages = Object.values(validationError.errors).map(val => val.message);
+            return res.status(400).json({ msg: 'Form doğrulama hatası', errors: messages });
+        }
+        
         const createdProduct = await product.save();
         res.status(201).json(createdProduct);
     } catch (err) { 
+        console.error('Ürün oluşturma hatası:', err);
         if (err.code === 11000) {
             return res.status(400).json({ msg: 'Bu isimde bir ürün zaten mevcut.' });
         }
@@ -131,7 +169,11 @@ router.post('/', protect, admin, upload.array('images', 10), [
             const messages = Object.values(err.errors).map(val => val.message);
             return res.status(400).json({ msg: messages.join(', ') });
         }
-        res.status(500).json({ msg: 'Sunucuda beklenmedik bir hata oluştu.', error: err.message });
+        res.status(500).json({ 
+            msg: 'Sunucuda beklenmedik bir hata oluştu.', 
+            error: err.message,
+            stack: process.env.NODE_ENV === 'production' ? null : err.stack 
+        });
     }
 });
 
