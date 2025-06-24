@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import './AdminForm.css';
@@ -24,7 +25,7 @@ function CategoryEditPage() {
     const fetchInitialData = async () => {
       try {
         // Dropdown için tüm kategorileri çek
-        const resAll = await fetch('http://localhost:5001/api/categories', {
+        const resAll = await fetch(`${API_BASE_URL}/api/categories`, {
             headers: { 'Authorization': `Bearer ${authToken}` }
         });
         const dataAll = await resAll.json();
@@ -33,7 +34,7 @@ function CategoryEditPage() {
 
         // Eğer düzenleme modundaysak, mevcut kategorinin bilgilerini çek
         if (!isNewCategory) {
-          const resCurrent = await fetch(`http://localhost:5001/api/categories/${categoryId}`, {
+          const resCurrent = await fetch(`${API_BASE_URL}/api/categories/${categoryId}`, {
               headers: { 'Authorization': `Bearer ${authToken}` }
           });
           const dataCurrent = await resCurrent.json();
@@ -60,7 +61,7 @@ function CategoryEditPage() {
     setError(''); 
     setSuccess('');
 
-    const url = isNewCategory ? 'http://localhost:5001/api/categories' : `http://localhost:5001/api/categories/${categoryId}`;
+    const url = isNewCategory ? `${API_BASE_URL}/api/categories` : `${API_BASE_URL}/api/categories/${categoryId}`;
     const method = isNewCategory ? 'POST' : 'PUT';
 
     // === GÜNCELLEME: Gönderilen veriye "parent" alanı eklendi ===

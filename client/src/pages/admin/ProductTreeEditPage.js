@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -22,13 +23,13 @@ function ProductTreeEditPage() {
     useEffect(() => {
         const fetchInitialData = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/inventory', { headers: { 'Authorization': `Bearer ${authToken}` } });
+                const res = await fetch(`${API_BASE_URL}/api/inventory`, { headers: { 'Authorization': `Bearer ${authToken}` } });
                 const data = await res.json();
                 if (!res.ok) throw new Error('Stok kalemleri getirilemedi.');
                 setInventoryItems(data);
 
                 if (!isNewTree) {
-                    const treeRes = await fetch(`http://localhost:5001/api/product-trees/${treeId}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                    const treeRes = await fetch(`${API_BASE_URL}/api/product-trees/${treeId}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
                     const treeData = await treeRes.json();
                     if(!treeRes.ok) throw new Error('Ürün ağacı verisi alınamadı.');
                     setTreeName(treeData.name);
@@ -76,7 +77,7 @@ function ProductTreeEditPage() {
         const method = isNewTree ? 'POST' : 'PUT';
 
         try {
-            const res = await fetch(`http://localhost:5001${url}`, {
+            const res = await fetch(`${API_BASE_URL}${url}`, {
                 method: method,
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify({ name: treeName, components: componentData })
@@ -97,7 +98,7 @@ function ProductTreeEditPage() {
         if (components.length === 0) return toast.error('Önce ürün ağacına parça ekleyin.');
         const componentData = components.map(item => ({ inventoryItem: item._id, quantity: item.quantity }));
         try {
-            const res = await fetch('http://localhost:5001/api/costing/calculate', {
+            const res = await fetch(`${API_BASE_URL}/api/costing/calculate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify({ components: componentData, targetTerm, targetCurrency: 'TL' })
