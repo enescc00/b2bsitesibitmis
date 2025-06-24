@@ -37,6 +37,17 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(morgan('combined', { stream: logger.stream }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// /api/api/ tekrarlamasını düzeltecek ara yazılım
+app.use((req, res, next) => {
+    const doubleApiPattern = /\/api\/api\//;
+    if (doubleApiPattern.test(req.url)) {
+        req.url = req.url.replace(doubleApiPattern, '/api/');
+        console.log(`URL düzeltildi: ${req.url}`);
+    }
+    next();
+});
 app.use(cookieParser());
 
 // VERİTABANI BAĞLANTISI
