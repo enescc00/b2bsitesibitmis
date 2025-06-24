@@ -168,20 +168,20 @@ router.post('/', protect, admin, [
         
         const createdProduct = await product.save();
         res.status(201).json(createdProduct);
-    } catch (err) { 
-        console.error('Ürün oluşturma hatası:', err);
-        if (err.code === 11000) {
-            return res.status(400).json({ msg: 'Bu isimde bir ürün zaten mevcut.' });
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            const errors = Object.values(error.errors).map(err => err.message);
+            console.error('Product creation validation error:', errors);
+            // Return a detailed error message to the client
+            return res.status(400).json({ message: 'Zorunlu alanlar eksik veya geçersiz.', errors: errors.join(', ') });
         }
-        if (err.name === 'ValidationError') {
-            const messages = Object.values(err.errors).map(val => val.message);
-            return res.status(400).json({ msg: messages.join(', ') });
+        if (error.code === 11000) {
+            // Handle duplicate key error (e.g., unique product name)
+            return res.status(400).json({ message: 'Bu isimde bir ürün zaten mevcut.' });
         }
-        res.status(500).json({ 
-            msg: 'Sunucuda beklenmedik bir hata oluştu.', 
-            error: err.message,
-            stack: process.env.NODE_ENV === 'production' ? null : err.stack 
-        });
+        // For any other errors, return a generic 500 server error
+        console.error('Product creation server error:', error);
+        res.status(500).json({ message: 'Sunucuda bir hata oluştu.', error: error.message });
     }
 });
 
