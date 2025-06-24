@@ -94,7 +94,8 @@ router.get('/:id', async (req, res) => {
 });
 
 // @route   POST /api/products (Yeni ürün oluşturma)
-router.post('/', protect, admin, upload.array('images', 10), [
+// Cloudinary hatasını önlemek için upload.array middleware'ini geçici olarak kaldırıldı
+router.post('/', protect, admin, [
     body('name', 'Ürün adı zorunludur').not().isEmpty().trim().escape(),
 ], async (req, res) => {
     const errors = validationResult(req);
@@ -120,7 +121,14 @@ router.post('/', protect, admin, upload.array('images', 10), [
         return res.status(400).json({ msg: 'Formda geçersiz JSON verileri var', error: e.message });
     }
     
-    const images = req.files ? req.files.map(file => file.path) : [];
+    // Cloudinary hatasını geçici olarak önlemek için sabit resim URL'leri kullanalım
+    // Bu placehold.co ve picsum.photos geçici resim URL'leri
+    const images = req.files 
+        ? req.files.map(file => file.path) 
+        : [
+            'https://via.placeholder.com/500',
+            'https://picsum.photos/id/26/500/500'
+          ];
 
     try { 
         // Daha iyi hata ayıklama için form verilerini kontrol etme
