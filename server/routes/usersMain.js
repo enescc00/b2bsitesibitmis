@@ -10,8 +10,9 @@ const supplierRoutes = require('./users/supplier');
 
 // Ana kullanıcı rotalarını alt modüllere yönlendir
 
-// Eski istemci uyumluluğu için /auth prefix'i de destekle
+// Eski istemci uyumluluğu için hem kök hem de /auth prefix'i ile destekle
 router.use('/auth', authRoutes);
+router.use('/', authRoutes);
 router.use('/profile', profileRoutes);
 router.use('/admin', adminRoutes);
 router.use('/wishlist', wishlistRoutes);
