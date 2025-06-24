@@ -3,7 +3,6 @@ import { jwtDecode } from 'jwt-decode';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import './LoginPage.css';
-import loginBg from '../assets/login-bg.png'; // Arka plan resmini import et
 
 function LoginPage() {
   const [email, setEmail] = useState('');
@@ -46,9 +45,14 @@ function LoginPage() {
 
   return (
     <div className="login-page-wrapper">
-      <div className="login-welcome-panel" style={{ backgroundImage: `url(${loginBg})` }}>
+      <div className="login-welcome-panel">
         {/* === DEĞİŞİKLİK 1: Yazı yerine logo eklendi === */}
-        {/* Logo ve 'Hoşgeldiniz' yazısı, yeni arka plan görseline dahil olduğu için kaldırıldı. */}
+        <img 
+            src="https://www.curkuslar.com.tr/wp-content/uploads/2021/10/CMS-LOGO-380.png" 
+            alt="Bay Yazılım Logo" 
+            className="login-logo-img"
+        />
+        <h2>Hoşgeldiniz</h2>
         {/* === DEĞİŞİKLİK 2: Demo bilgi kutusu kaldırıldı === */}
       </div>
       <div className="login-form-panel">
