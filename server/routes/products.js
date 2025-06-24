@@ -185,7 +185,30 @@ router.post('/', protect, admin, upload.array('images', 10), async (req, res) =>
         
         // Yüklenen yeni dosyalar varsa ekle
         if (req.files && req.files.length > 0) {
-            formData.images = [...formData.images, ...req.files.map(file => file.path)];
+            try {
+                console.log('Yüklenen dosyalar:', req.files);
+                
+                // Cloudinary yükleme yanıtını doğru şekilde işle
+                const newImagesUrls = req.files.map(file => {
+                    if (file.path) {
+                        // Bazen path yerine secure_url olabilir
+                        return file.path;
+                    } else if (file.secure_url) {
+                        return file.secure_url;
+                    } else if (file.url) {
+                        return file.url;
+                    } else {
+                        console.error('Dosya URL bulunamadı:', file);
+                        return 'https://via.placeholder.com/500';
+                    }
+                });
+                
+                console.log('İşlenmiş resim URL\'leri:', newImagesUrls);
+                formData.images = [...formData.images, ...newImagesUrls];
+            } catch (error) {
+                console.error('Dosya işleme hatası:', error);
+                // Hata olsa bile geçerli resimlerle devam et
+            }
         }
 
         // Ürün nesnesini oluştur
