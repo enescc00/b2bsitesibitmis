@@ -107,43 +107,63 @@ function ProductEditPage() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (loading) return;
+        
         setLoading(true);
-
-        const submissionData = new FormData();
-
-        // Append all form fields
-        Object.keys(formData).forEach(key => {
-            if (key !== 'images' && key !== 'specifications' && key !== 'boxContents' && key !== 'components') {
-                submissionData.append(key, formData[key]);
-            }
-        });
-
-        // Handle arrays of objects by stringifying them
-        submissionData.append('specifications', JSON.stringify(formData.specifications));
-        submissionData.append('boxContents', JSON.stringify(formData.boxContents));
-        submissionData.append('components', JSON.stringify(formData.components));
-
-        // Append existing images for the PUT request
-        if (!isNewProduct) {
-            formData.images.forEach(imgUrl => {
-                submissionData.append('existingImages', imgUrl);
-            });
-        }
-
-        // Append new image files
-        newImageFiles.forEach(file => {
-            submissionData.append('images', file);
-        });
-
-        const url = isNewProduct ? `${API_BASE_URL}/api/products` : `${API_BASE_URL}/api/products/${productId}`;
-        const method = isNewProduct ? 'POST' : 'PUT';
-
+        
         try {
-            const response = await fetch(url, {
-                method: method,
-                headers: { 'Authorization': `Bearer ${authToken}` }, // Don't set Content-Type, browser does it for FormData
-                body: submissionData
+            const formDataToSend = new FormData();
+            Object.keys(formData).forEach(key => {
+                if (key === 'images') return;
+                if (Array.isArray(formData[key]) && key !== 'components') {
+                    formDataToSend.append(key, JSON.stringify(formData[key]));
+                } else if (key === 'components' && formData[key].length > 0) {
+                    formDataToSend.append(key, JSON.stringify(formData[key]));
+                } else if (key === 'isActive') {
+                    formDataToSend.append(key, formData[key]);
+                } else {
+                    formDataToSend.append(key, formData[key]);
+                }
             });
+            
+            // Add existing images if any
+            if (Array.isArray(formData.images)) {
+                formData.images.forEach(image => {
+                    if (typeof image === 'string') {
+                        formDataToSend.append('existingImages', image);
+                    }
+                });
+            }
+            
+            // Add new files to upload
+            newImageFiles.forEach(file => {
+                formDataToSend.append('images', file);
+            });
+            
+            let response;
+            let url;
+            
+            // URL sorunlarını önlemek için direk URL tanımlayalım
+            // Burada API_BASE_URL'i kullanmak yerine, URL'i manuel oluşturuyoruz
+            const baseServerUrl = 'https://b2bsitesibitmis.onrender.com';
+            
+            if (productId) {
+                url = `${baseServerUrl}/api/products/${productId}`;
+                console.log('Product update URL:', url);
+                response = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formDataToSend
+                });
+            } else {
+                url = `${baseServerUrl}/api/products`;
+                console.log('Product create URL:', url);
+                response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${authToken}` },
+                    body: formDataToSend
+                });
+            }
 
             const data = await response.json();
             if (!response.ok) throw new Error(data.msg || 'İşlem başarısız.');
