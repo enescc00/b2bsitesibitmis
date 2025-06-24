@@ -48,11 +48,22 @@ export const AuthProvider = ({ children }) => {
         ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
       };
 
-      // URL rewrite: destekle \n      let target = input;\n      if (typeof target === 'string') {\n        if (target.startsWith('http://localhost:5001')) {\n          target = target.replace('http://localhost:5001', API_BASE_URL);\n        } else if (target.startsWith('/')) {\n          // Relative /api/... -> absolute\n          target = API_BASE_URL + target;\n        }\n      }\n\n      let response = await originalFetch(target, newInit);
+      // URL rewrite
+      let target = input;
+      if (typeof target === 'string') {
+          if (target.startsWith('http://localhost:5001')) {
+            target = target.replace('http://localhost:5001', API_BASE_URL);
+          } else if (target.startsWith('/')) {
+            // Relative path starting with / -> prepend base URL
+            target = API_BASE_URL + target;
+          }
+              }
+
+      let response = await originalFetch(target, newInit);
       if (response.status === 401) {
         // Access token süresi dolmuş olabilir → refresh dene
         try {
-          const refreshRes = await originalFetch('${API_BASE_URL}/api/users/auth/refresh', {
+          const refreshRes = await originalFetch(`${API_BASE_URL}/api/users/auth/refresh`, {
             method: 'POST',
             credentials: 'include'
           });
@@ -61,7 +72,7 @@ export const AuthProvider = ({ children }) => {
             login(data.token);
             // İlk isteği token ile tekrar yap
             newInit.headers['Authorization'] = `Bearer ${data.token}`;
-            response = await originalFetch(input, newInit);
+            response = await originalFetch(target, newInit);
           } else {
             logout();
           }
