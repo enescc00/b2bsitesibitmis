@@ -7,7 +7,7 @@
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: #23242a;
+  background: #0a3d15; /* Canlı yeşil arka plan */
   font-family: 'Poppins', sans-serif;
   padding: 2rem; /* Add padding for safety on small screens */
   box-sizing: border-box;
@@ -116,7 +116,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0 20px;
-  margin-top: 15px; /* Push links down */
+  margin-top: 40px; /* Linkleri daha da aşağı it */
 }
 
 .links a {
@@ -134,4 +134,5 @@
 .login-page-logo {
   max-width: 250px; /* Adjust size as needed */
   margin-bottom: 2rem; /* Space between logo and ring */
+  filter: brightness(0) invert(1); /* Logoyu beyaz yap */
 }
