@@ -99,14 +99,11 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 
 // ÜRETİM (PRODUCTION) ORTAMI İÇİN YAPILANDIRMA
-// React build klasörü Render'da yok; statik servis devre dışı
-if (false && process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.join(__dirname, '../client/build')));
-    app.get('/', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
-    });
-    app.get('/*rest', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
+// Serve static files from the public folder
+if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'public')));
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
     });
 } else {
     app.get('/', (req, res) => {
