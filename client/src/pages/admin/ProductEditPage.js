@@ -112,39 +112,59 @@ function ProductEditPage() {
         setLoading(true);
         
         try {
+            // Form validation - check for required fields
+            const requiredFields = ['name', 'description', 'category', 'costPrice', 'stock'];
+            const missingFields = requiredFields.filter(field => 
+                formData[field] === undefined || formData[field] === null || formData[field] === ''
+            );
+            
+            if (missingFields.length > 0) {
+                throw new Error(`Lütfen bu alanları doldurun: ${missingFields.join(', ')}`);
+            }
+            
             const formDataToSend = new FormData();
+            
+            // Add each field type correctly to FormData
             Object.keys(formData).forEach(key => {
                 if (key === 'images') return;
-                if (Array.isArray(formData[key]) && key !== 'components') {
+                
+                if (Array.isArray(formData[key])) {
                     formDataToSend.append(key, JSON.stringify(formData[key]));
-                } else if (key === 'components' && formData[key].length > 0) {
-                    formDataToSend.append(key, JSON.stringify(formData[key]));
-                } else if (key === 'isActive') {
-                    formDataToSend.append(key, formData[key]);
-                } else {
+                } 
+                else if (typeof formData[key] === 'boolean') {
+                    formDataToSend.append(key, String(formData[key]));
+                }
+                else if (typeof formData[key] === 'number' || key === 'costPrice' || key === 'stock') {
+                    formDataToSend.append(key, String(formData[key]));
+                }
+                else {
                     formDataToSend.append(key, formData[key]);
                 }
             });
             
             // Add existing images if any
-            if (Array.isArray(formData.images)) {
+            if (Array.isArray(formData.images) && formData.images.length > 0) {
                 formData.images.forEach(image => {
                     if (typeof image === 'string') {
                         formDataToSend.append('existingImages', image);
                     }
                 });
+            } else {
+                // En az bir resim olması için varsayılan placeholder resim URL'si ekle
+                formDataToSend.append('existingImages', 'https://via.placeholder.com/300');
             }
             
             // Add new files to upload
-            newImageFiles.forEach(file => {
-                formDataToSend.append('images', file);
-            });
+            if (newImageFiles.length > 0) {
+                newImageFiles.forEach(file => {
+                    formDataToSend.append('images', file);
+                });
+            }
             
             let response;
             let url;
             
             // URL sorunlarını önlemek için direk URL tanımlayalım
-            // Burada API_BASE_URL'i kullanmak yerine, URL'i manuel oluşturuyoruz
             const baseServerUrl = 'https://b2bsitesibitmis.onrender.com';
             
             if (productId) {
