@@ -48,28 +48,34 @@ export const AuthProvider = ({ children }) => {
         ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
       };
 
-      // URL rewrite
+      // URL yeniden yönlendirme mantığını tamamen yeniden yapılandırma
       let target = input;
+
       if (typeof target === 'string') {
+        // Eski localhost URL'lerini değiştir
         if (target.startsWith('http://localhost:5001')) {
           target = target.replace('http://localhost:5001', API_BASE_URL);
-        } else if (target.startsWith('/')) {
-          // URL'leri birleştirirken çift /api sorununu çözecek gelişmiş mantık
-          const baseWithoutSlash = API_BASE_URL.replace(/\/$/, ''); // Sondaki / varsa kaldır
-          const pathWithoutApiPrefix = target.replace(/^\/api\//, '/'); // Baştaki /api/ varsa kaldır
+        } 
+        // Göreceli yolları işle
+        else if (target.startsWith('/')) {
+          const baseUrl = API_BASE_URL.replace(/\/$/, ''); // Sondaki slash'i kaldır
           
-          // Birleştirilmiş URL oluştur, API_BASE_URL'in /api içerip içermediğine göre kontrol yap
-          let combinedUrl;
-          if (baseWithoutSlash.endsWith('/api')) {
-            // Base URL'de zaten /api varsa, path'den /api'yi kaldırıp birleştir
-            combinedUrl = `${baseWithoutSlash}${pathWithoutApiPrefix}`;
-          } else {
-            // Base URL'de /api yoksa, path'deki /api'yi koru
-            combinedUrl = `${baseWithoutSlash}${target}`;
+          // Önce hedef yolu temizle
+          let cleanPath = target;
+          
+          // Yoldaki api önekini kaldırıyoruz, biz ekleyeceğiz
+          if (cleanPath.startsWith('/api/')) {
+            cleanPath = cleanPath.substring(4); // '/api' kısmını kaldır
           }
           
-          // Yine de oluşmuş olabilecek /api/api/ durumunu temizle
-          target = combinedUrl.replace(/\/api\/api\//g, '/api/');
+          // Temizlenmiş yolu birleştirelim
+          target = `${baseUrl}/api${cleanPath}`;
+          
+          // Son kontrol olarak, oluşabilecek url sorunlarını düzelt
+          target = target
+            .replace(/\/\//g, '/') // Çift slash'leri temizle
+            .replace(/:\/(\w)/, '://$1') // Protocol sonrasında tek slash varsa düzelt (http:/)  
+            .replace(/\/api\/api\//g, '/api/'); // /api/api/ çiftleşmelerini temizle
         }
       }
 
