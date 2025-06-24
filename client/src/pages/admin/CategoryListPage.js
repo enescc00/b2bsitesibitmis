@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import './AdminTable.css';
@@ -15,7 +16,7 @@ function CategoryListPage() {
       try {
         setLoading(true);
         // DOĞRU API İSTEĞİ: /api/categories
-        const response = await fetch('http://localhost:5001/api/categories');
+        const response = await fetch(`${API_BASE_URL}/api/categories`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.msg || 'Kategoriler getirilemedi.');
@@ -33,7 +34,7 @@ function CategoryListPage() {
   const handleDelete = async (id) => {
     if (window.confirm('Bu kategoriyi silmek istediğinizden emin misiniz? Bu kategoriye bağlı ürünler varsa sorun yaşanabilir.')) {
         try {
-            const response = await fetch(`http://localhost:5001/api/categories/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/categories/${id}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${authToken}` }
             });

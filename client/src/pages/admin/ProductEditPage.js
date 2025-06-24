@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../../context/AuthContext';
@@ -28,7 +29,7 @@ function ProductEditPage() {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const catRes = await fetch('http://localhost:5001/api/categories', { headers: { 'Authorization': `Bearer ${authToken}` } });
+                const catRes = await fetch(`${API_BASE_URL}/api/categories`, { headers: { 'Authorization': `Bearer ${authToken}` } });
                 if (!catRes.ok) throw new Error('Kategoriler alınamadı.');
                 const catData = await catRes.json();
                 setCategories(catData);
@@ -41,7 +42,7 @@ function ProductEditPage() {
                         setFormData(prev => ({ ...prev, name: inventoryItem.name, costPrice: inventoryItem.unitPrice, components: [{ inventoryItem: inventoryItem._id, quantity: 1 }] }));
                     }
                 } else {
-                    const productRes = await fetch(`http://localhost:5001/api/products/${productId}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                    const productRes = await fetch(`${API_BASE_URL}/api/products/${productId}`, { headers: { 'Authorization': `Bearer ${authToken}` } });
                     if (!productRes.ok) throw new Error('Ürün verileri alınamadı.');
                     const productToEdit = await productRes.json();
                     productToEdit.images = productToEdit.images || [];
@@ -134,7 +135,7 @@ function ProductEditPage() {
             submissionData.append('images', file);
         });
 
-        const url = isNewProduct ? 'http://localhost:5001/api/products' : `http://localhost:5001/api/products/${productId}`;
+        const url = isNewProduct ? `${API_BASE_URL}/api/products` : `${API_BASE_URL}/api/products/${productId}`;
         const method = isNewProduct ? 'POST' : 'PUT';
 
         try {

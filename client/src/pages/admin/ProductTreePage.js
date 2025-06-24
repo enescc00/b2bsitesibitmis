@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -24,8 +25,8 @@ function ProductTreePage() {
             try {
                 // Stok ve kategori verilerini aynı anda çek
                 const [invRes, catRes] = await Promise.all([
-                    fetch('http://localhost:5001/api/inventory', { headers: { 'Authorization': `Bearer ${authToken}` } }),
-                    fetch('http://localhost:5001/api/categories', { headers: { 'Authorization': `Bearer ${authToken}` } })
+                    fetch(`${API_BASE_URL}/api/inventory`, { headers: { 'Authorization': `Bearer ${authToken}` } }),
+                    fetch(`${API_BASE_URL}/api/categories`, { headers: { 'Authorization': `Bearer ${authToken}` } })
                 ]);
                 const invData = await invRes.json();
                 const catData = await catRes.json();
@@ -74,7 +75,7 @@ function ProductTreePage() {
         if (productTree.length === 0) return toast.error('Önce ürün ağacına parça ekleyin.');
         const components = productTree.map(item => ({ inventoryItem: item._id, quantity: item.quantity }));
         try {
-            const res = await fetch('http://localhost:5001/api/costing/calculate', {
+            const res = await fetch(`${API_BASE_URL}/api/costing/calculate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify({ components, targetTerm, targetCurrency: 'TL' })
@@ -105,7 +106,7 @@ function ProductTreePage() {
         };
         
         try {
-            const response = await fetch('http://localhost:5001/api/products', {
+            const response = await fetch(`${API_BASE_URL}/api/products`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                 body: JSON.stringify(newProductData)

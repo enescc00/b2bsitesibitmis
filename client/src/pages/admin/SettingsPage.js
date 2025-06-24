@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { AuthContext } from '../../context/AuthContext';
 import './AdminForm.css';
 import { toast } from 'react-toastify';
@@ -15,7 +16,7 @@ function SettingsPage() {
     useEffect(() => {
         const fetchSettings = async () => {
             try {
-                const res = await fetch('http://localhost:5001/api/settings', {
+                const res = await fetch(`${API_BASE_URL}/api/settings`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
@@ -46,7 +47,7 @@ function SettingsPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await fetch('http://localhost:5001/api/settings', {
+            const res = await fetch(`${API_BASE_URL}/api/settings`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

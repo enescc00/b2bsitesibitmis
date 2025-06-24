@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import Paginate from '../../components/Paginate';
@@ -24,7 +25,7 @@ function OrderListPage() {
     const fetchOrders = async () => {
         try {
           setLoading(true);
-          let url = `http://localhost:5001/api/orders?pageNumber=${currentPage}`;
+          let url = `${API_BASE_URL}/api/orders?pageNumber=${currentPage}`;
           if (startDate && endDate) {
               url += `&startDate=${startDate}&endDate=${endDate}`;
           }
@@ -55,7 +56,7 @@ function OrderListPage() {
             if (!pkgs) return; // iptal
             body.packagesCount = Number(pkgs);
         }
-        const response = await fetch(`http://localhost:5001/api/orders/${orderId}/status`, {
+        const response = await fetch(`${API_BASE_URL}/api/orders/${orderId}/status`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}`},
             body: JSON.stringify(body)

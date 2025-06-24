@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { API_BASE_URL } from '../../config/api';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 import { toast } from 'react-toastify';
@@ -19,7 +20,7 @@ function ProductTreeListPage() {
         const fetchTrees = async () => {
             try {
                 setLoading(true);
-                const res = await fetch('http://localhost:5001/api/product-trees', {
+                const res = await fetch(`${API_BASE_URL}/api/product-trees`, {
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
                 const data = await res.json();
@@ -48,7 +49,7 @@ function ProductTreeListPage() {
     const handleDelete = async (id) => {
         if (window.confirm('Bu ürün ağacını silmek istediğinizden emin misiniz?')) {
             try {
-                await fetch(`http://localhost:5001/api/product-trees/${id}`, {
+                await fetch(`${API_BASE_URL}/api/product-trees/${id}`, {
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${authToken}` }
                 });
