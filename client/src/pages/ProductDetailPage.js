@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { assetUrl } from '../config/api';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
@@ -120,12 +121,12 @@ function ProductDetailPage() {
                         onMouseLeave={() => setShowZoom(false)}
                         onMouseMove={handleMouseMove}
                     >
-                        <img src={`http://localhost:5001${activeImage}`} alt={product.name} className="main-image-display" style={{ opacity: showZoom ? 0 : 1 }} />
+                        <img src={assetUrl(activeImage)} alt={product.name} className="main-image-display" style={{ opacity: showZoom ? 0 : 1 }} />
                         {showZoom && activeImage && (
                             <div
                                 className="zoom-lens"
                                 style={{
-                                    backgroundImage: `url(http://localhost:5001${activeImage})`,
+                                    backgroundImage: `url(${assetUrl(activeImage)})`,
                                     backgroundPosition: `${cursorPosition.x}% ${cursorPosition.y}%`
                                 }}
                             />
@@ -134,7 +135,7 @@ function ProductDetailPage() {
                     <div className="thumbnail-container">
                         {imageArray.map((img, index) => (
                             <div key={index} className={`thumbnail-item ${img === activeImage ? 'active' : ''}`} onClick={() => setActiveImage(img)}>
-                                <img src={`http://localhost:5001${img}`} alt={`Thumbnail ${index + 1}`} />
+                                <img src={assetUrl(img)} alt={`Thumbnail ${index + 1}`} />
                             </div>
                         ))}
                     </div>

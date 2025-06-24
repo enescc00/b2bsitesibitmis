@@ -4,6 +4,7 @@ import { CartContext } from '../context/CartContext';
 import { WishlistContext } from '../context/WishlistContext';
 import { AuthContext } from '../context/AuthContext';
 import './ProductCard.css';
+import { assetUrl } from '../config/api';
 
 // === DEĞİŞİKLİK: Bileşen artık opsiyonel olarak "onAddToCart" prop'u alıyor ===
 function ProductCard({ product, onAddToCart }) {
@@ -44,7 +45,7 @@ function ProductCard({ product, onAddToCart }) {
                 </button>
             )}
             <div className="product-image-container">
-                <img className="product-card-image" src={product.images && product.images.length > 0 ? `http://localhost:5001${product.images[0]}` : 'https://via.placeholder.com/300?text=Görsel+Yok'} alt={product.name}/>
+                <img className="product-card-image" src={product.images && product.images.length > 0 ? assetUrl(product.images[0]) : 'https://via.placeholder.com/300?text=Görsel+Yok'} alt={product.name}/>
             </div>
             <div className="product-info">
                 <p className="product-category">{product.category ? product.category.name : 'Kategorisiz'}</p>
