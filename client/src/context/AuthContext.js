@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
-import { jwtDecode } from 'jwt-decode'; // Yüklediğimiz paketi import ediyoruz
+import { jwtDecode } from 'jwt-decode';
+import { API_BASE_URL } from '../config/api';
 
 export const AuthContext = createContext();
 
@@ -47,11 +48,11 @@ export const AuthProvider = ({ children }) => {
         ...(authToken ? { 'Authorization': `Bearer ${authToken}` } : {})
       };
 
-      let response = await originalFetch(input, newInit);
+      // URL rewrite: destekle \n      let target = input;\n      if (typeof target === 'string') {\n        if (target.startsWith('http://localhost:5001')) {\n          target = target.replace('http://localhost:5001', API_BASE_URL);\n        } else if (target.startsWith('/')) {\n          // Relative /api/... -> absolute\n          target = API_BASE_URL + target;\n        }\n      }\n\n      let response = await originalFetch(target, newInit);
       if (response.status === 401) {
         // Access token süresi dolmuş olabilir → refresh dene
         try {
-          const refreshRes = await originalFetch('http://localhost:5001/api/users/auth/refresh', {
+          const refreshRes = await originalFetch('${API_BASE_URL}/api/users/auth/refresh', {
             method: 'POST',
             credentials: 'include'
           });

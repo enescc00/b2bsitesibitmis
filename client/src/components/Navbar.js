@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { API_BASE_URL } from '../config/api';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
@@ -42,7 +43,7 @@ function Navbar() {
     }
     const timer = setTimeout(async () => {
         try {
-            const res = await fetch(`http://localhost:5001/api/products/search-suggestions?keyword=${keyword}`);
+            const res = await fetch(`${API_BASE_URL}/api/products/search-suggestions?keyword=${keyword}`);
             const data = await res.json();
             if(res.ok) {
                 setSuggestions(data);
@@ -59,7 +60,7 @@ function Navbar() {
   useEffect(() => {
     const fetchAndProcessCategories = async () => {
         try {
-            const res = await fetch('http://localhost:5001/api/categories');
+            const res = await fetch(`${API_BASE_URL}/api/categories`);
             if(!res.ok) {
                 const errorData = await res.json().catch(() => ({ msg: 'Kategori bilgileri sunucudan alınamadı.' }));
                 throw new Error(errorData.msg);
@@ -124,7 +125,7 @@ function Navbar() {
                     <div className="search-suggestions">
                         {suggestions.map(product => (
                             <Link key={product._id} to={`/product/${product._id}`} className="suggestion-item" onClick={onSuggestionClick}>
-                                <img src={product.images && product.images.length > 0 ? `http://localhost:5001${product.images[0]}` : 'https://via.placeholder.com/40x40?text=No+Image'} alt={product.name} className="suggestion-image" />
+                                <img src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[0]}` : 'https://via.placeholder.com/40x40?text=No+Image'} alt={product.name} className="suggestion-image" />
                                 <span className="suggestion-name">{product.name}</span>
                             </Link>
                         ))}
