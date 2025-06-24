@@ -101,13 +101,19 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Tüm API route'ları /api/ ile başlamalı
-app.use('/api', (req, res, next) => {
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        // API istekleri için next() çağrılıyor
+        return next();
+    }
+    
+    // Eğer dosya bulunamazsa index.html'i gönder (React Router için)
+    if (!req.path.includes('.')) {
+        return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    }
+    
+    // Diğer statik dosya istekleri için next()
     next();
-});
-
-// Tüm diğer istekleri React uygulamasına yönlendir
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 
