@@ -47,12 +47,7 @@ function LoginPage() {
     <div className="login-page-wrapper">
       <div className="login-welcome-panel">
         {/* === DEĞİŞİKLİK 1: Yazı yerine logo eklendi === */}
-        <img 
-            src="https://www.curkuslar.com.tr/wp-content/uploads/2021/10/CMS-LOGO-380.png" 
-            alt="Bay Yazılım Logo" 
-            className="login-logo-img"
-        />
-        <h2>Hoşgeldiniz</h2>
+        {/* Logo ve 'Hoşgeldiniz' yazısı, yeni arka plan görseline dahil olduğu için kaldırıldı. */}
         {/* === DEĞİŞİKLİK 2: Demo bilgi kutusu kaldırıldı === */}
       </div>
       <div className="login-form-panel">
