@@ -88,11 +88,11 @@ function LoginPage() {
               />
             </div>
           </form>
-          <div className="links">
-            <Link to="/forgot-password">Şifremi Unuttum</Link>
-            <Link to="/register">Kayıt Ol</Link>
-          </div>
         </div>
+      </div>
+      <div className="links">
+        <Link to="/forgot-password">Şifremi Unuttum</Link>
+        <Link to="/register">Kayıt Ol</Link>
       </div>
     </div>
   );

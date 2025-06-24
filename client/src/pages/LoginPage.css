@@ -111,12 +111,11 @@
 
 .links {
   position: relative;
-  width: 100%;
+  width: 300px; /* Match login form width */
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 20px;
-  margin-top: 40px; /* Linkleri daha da aşağı it */
+  margin-top: 20px; /* Space below the ring */
 }
 
 .links a {
