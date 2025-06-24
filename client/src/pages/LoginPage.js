@@ -49,6 +49,11 @@ function LoginPage() {
 
   return (
     <div className="login-page-body">
+      <img 
+        src="https://www.curkuslar.com.tr/wp-content/uploads/2021/10/CMS-LOGO-380.png" 
+        alt="Logo"
+        className="login-page-logo"
+      />
       <div className="ring">
         <i style={{'--clr': '#00ff0a'}}></i>
         <i style={{'--clr': '#ff0057'}}></i>
