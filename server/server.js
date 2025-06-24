@@ -94,27 +94,26 @@ cron.schedule('0 0 * * *', () => {
 });
 
 
-// STATİK DOSYALARA ERİŞİM (Resimler vb. için)
+// STATİK DOSYALARA ERİŞİM
+// Uploads klasörü (resimler vb. için)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// API isteklerini ve statik dosyaları işle
+// Önce tüm statik dosyaları serve et
+app.use(express.static(path.join(__dirname, 'public')));
+
+// API istekleri için route'ları kullan
+// Client-side routing için HTML5 fallback
 app.use((req, res, next) => {
-    // API istekleri
+    // API istekleri için pass
     if (req.path.startsWith('/api/')) {
         return next();
     }
     
-    // Statik dosya istekleri
-    const filePath = path.join(__dirname, 'public', req.path === '/' ? 'index.html' : req.path);
-    
-    // Dosya var mı kontrol et
-    require('fs').access(filePath, (err) => {
+    // Statik olmayan tüm istekleri index.html'e yönlendir (React Router için)
+    res.sendFile(path.join(__dirname, 'public', 'index.html'), err => {
         if (err) {
-            // Dosya yoksa index.html'i gönder (React Router için)
-            res.sendFile(path.join(__dirname, 'public', 'index.html'));
-        } else {
-            // Dosya varsa statik olarak sun
-            express.static(path.join(__dirname, 'public'))(req, res, next);
+            console.error('Statik dosya servis hatası:', err);
+            res.status(500).send('Statik dosya servis hatası');
         }
     });
 });
