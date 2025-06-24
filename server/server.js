@@ -101,7 +101,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // ÜRETİM (PRODUCTION) ORTAMI İÇİN YAPILANDIRMA
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../client/build')));
-    app.get('/*', (req, res) => {
+    app.get('/*rest', (req, res) => {
         res.sendFile(path.resolve(__dirname, '../client/build', 'index.html'));
     });
 } else {
