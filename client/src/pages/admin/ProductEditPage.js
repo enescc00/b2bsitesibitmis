@@ -3,6 +3,7 @@ import { API_BASE_URL } from '../../config/api';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { AuthContext } from '../../context/AuthContext';
+import axios from 'axios';
 import './AdminForm.css';
 
 function ProductEditPage() {
@@ -110,13 +111,17 @@ function ProductEditPage() {
         if (loading) return;
         
         setLoading(true);
+        console.log("Form gönderimi başlıyor...");
         
         try {
             // Form validation - check for required fields
             const requiredFields = ['name', 'description', 'category', 'costPrice', 'stock'];
-            const missingFields = requiredFields.filter(field => 
-                formData[field] === undefined || formData[field] === null || formData[field] === ''
-            );
+            const missingFields = requiredFields.filter(field => {
+                const value = formData[field];
+                // Sayısal değerler 0 olabilir, bu geçerli bir değerdir
+                if (typeof value === 'number') return false;
+                return value === undefined || value === null || value === '';
+            });
             
             if (missingFields.length > 0) {
                 throw new Error(`Lütfen bu alanları doldurun: ${missingFields.join(', ')}`);
@@ -124,71 +129,93 @@ function ProductEditPage() {
             
             const formDataToSend = new FormData();
             
-            // Add each field type correctly to FormData
+            // Her alan tipini doğru şekilde FormData'ya ekle
             Object.keys(formData).forEach(key => {
-                if (key === 'images') return;
+                if (key === 'images') return; // Resimleri ayrı işleyeceğiz
                 
+                // Dizileri JSON string olarak ekle
                 if (Array.isArray(formData[key])) {
+                    console.log(`${key} (array):`, formData[key]);
                     formDataToSend.append(key, JSON.stringify(formData[key]));
-                } 
+                }
+                // Boolean değerleri string olarak ekle
                 else if (typeof formData[key] === 'boolean') {
-                    formDataToSend.append(key, String(formData[key]));
+                    console.log(`${key} (boolean):`, formData[key]);
+                    formDataToSend.append(key, formData[key] ? 'true' : 'false');
                 }
+                // Sayısal değerleri string'e çevir
                 else if (typeof formData[key] === 'number' || key === 'costPrice' || key === 'stock') {
+                    console.log(`${key} (number):`, formData[key]);
                     formDataToSend.append(key, String(formData[key]));
                 }
+                // Diğer değerleri olduğu gibi ekle
                 else {
+                    console.log(`${key}:`, formData[key]);
                     formDataToSend.append(key, formData[key]);
                 }
             });
             
-            // Add existing images if any
+            // Mevcut resimleri ekle
             if (Array.isArray(formData.images) && formData.images.length > 0) {
                 formData.images.forEach(image => {
                     if (typeof image === 'string') {
+                        console.log('Mevcut resim ekleniyor:', image);
                         formDataToSend.append('existingImages', image);
                     }
                 });
             } else {
                 // En az bir resim olması için varsayılan placeholder resim URL'si ekle
-                formDataToSend.append('existingImages', 'https://via.placeholder.com/300');
+                const placeholderImage = 'https://via.placeholder.com/300';
+                console.log('Varsayılan placeholder resim ekleniyor:', placeholderImage);
+                formDataToSend.append('existingImages', placeholderImage);
             }
             
-            // Add new files to upload
+            // Yeni dosyaları yükle
             if (newImageFiles.length > 0) {
+                console.log(`${newImageFiles.length} yeni resim ekleniyor`);
                 newImageFiles.forEach(file => {
                     formDataToSend.append('images', file);
                 });
             }
             
-            let response;
-            let url;
-            
-            // URL sorunlarını önlemek için direk URL tanımlayalım
+            // API URL'lerini oluştur (API_BASE_URL kullanmak yerine direkt URL tanımla)
             const baseServerUrl = 'https://b2bsitesibitmis.onrender.com';
+            const apiUrl = productId 
+                ? `${baseServerUrl}/api/products/${productId}` 
+                : `${baseServerUrl}/api/products`;
             
-            if (productId) {
-                url = `${baseServerUrl}/api/products/${productId}`;
-                console.log('Product update URL:', url);
-                response = await fetch(url, {
-                    method: 'PUT',
-                    headers: { 'Authorization': `Bearer ${authToken}` },
-                    body: formDataToSend
-                });
+            console.log(`API isteği gönderiliyor: ${productId ? 'PUT' : 'POST'} ${apiUrl}`);
+            
+            // axios konfigürasyonu
+            const axiosConfig = {
+                method: productId ? 'put' : 'post',
+                url: apiUrl,
+                headers: { 
+                    'Authorization': `Bearer ${authToken}`,
+                    'Content-Type': 'multipart/form-data'
+                },
+                data: formDataToSend,
+                // İstek ve yanıt detaylarını görmek için
+                validateStatus: function (status) {
+                    // Her durum kodunu kabul et ve hata yakalama bloğunda işle
+                    return true;
+                }
+            };
+            
+            // Axios ile istek at
+            const response = await axios(axiosConfig);
+            console.log('API yanıtı:', response.status, response.data);
+            
+            // Yanıt durumunu kontrol et
+            if (response.status >= 200 && response.status < 300) {
+                toast.success(`Ürün başarıyla ${isNewProduct ? 'oluşturuldu' : 'güncellendi'}.`);
+                navigate('/admin/products');
             } else {
-                url = `${baseServerUrl}/api/products`;
-                console.log('Product create URL:', url);
-                response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${authToken}` },
-                    body: formDataToSend
-                });
+                // Hata yanıtı
+                const errorMessage = response.data?.message || response.data?.msg || 'İşlem başarısız.';
+                const errorDetails = response.data?.errors ? `\nDetay: ${response.data.errors}` : '';
+                throw new Error(`${errorMessage}${errorDetails}`);
             }
-
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.msg || 'İşlem başarısız.');
-            toast.success(`Ürün başarıyla ${isNewProduct ? 'oluşturuldu' : 'güncellendi'}.`);
-            navigate('/admin/products');
         } catch (err) {
             toast.error(err.message);
         } finally {
