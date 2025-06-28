@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -96,6 +96,7 @@ const MainLayout = () => {
 
 // Ana Rotaları İçeren İçerik Bileşeni
 const AppContent = () => {
+    const location = useLocation();
     const { user, loading, authToken } = useContext(AuthContext);
     const [maintenanceStatus, setMaintenanceStatus] = useState({ isActive: false, message: '' });
     const [isCheckingStatus, setIsCheckingStatus] = useState(true);
@@ -129,7 +130,15 @@ const AppContent = () => {
 
     // Bakım modu aktifse ve kullanıcı admin değilse bakım sayfasını göster
     if (maintenanceStatus.isActive && (!user || user.role !== 'admin')) {
-        return <MaintenancePage message={maintenanceStatus.message} />;
+        // Allow access to login and authentication routes during maintenance
+        if (location.pathname.startsWith('/login') || location.pathname.startsWith('/admin/login')) {
+            // continue to regular routing to let user log in
+        } else if (location.pathname.startsWith('/admin')) {
+            // Redirect any admin path to login so that admin can authenticate
+            return <Navigate to="/login" replace />;
+        } else {
+            return <MaintenancePage message={maintenanceStatus.message} />;
+        }
     }
 
     return (
