@@ -12,7 +12,12 @@ const maintenanceMiddleware = asyncHandler(async (req, res, next) => {
         return next();
     }
 
-        // Bakım durumunu kontrol eden public endpointi serbest bırak
+        // Bakım ayarları ve durum Endpointlerini serbest bırak (PUT/GET)
+    if (req.path.startsWith('/settings')) {
+        return next();
+    }
+
+    // Bakım durumunu kontrol eden public endpointi serbest bırak
     if (req.path === '/settings/status') {
         return next();
     }
@@ -24,17 +29,24 @@ const maintenanceMiddleware = asyncHandler(async (req, res, next) => {
 
     let isAdmin = false;
 
-    // Authorization header varsa token'ı çözümleyelim
+    // 1) Authorization header
+    let token = null;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+    } else if (req.cookies && req.cookies.token) {
+        // 2) HTTP-only cookie fallback (token)
+        token = req.cookies.token;
+    }
+
+    if (token) {
         try {
-            const token = req.headers.authorization.split(' ')[1];
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            const user = await User.findById(decoded.user.id).select('role');
+            const user = await User.findById(decoded.id || decoded.user?.id).select('role');
             if (user && user.role === 'admin') {
                 isAdmin = true;
             }
         } catch (err) {
-            // Token hatalarını yoksay, admin değil kabul et
+            // Token hatası: admin değil kabul et
         }
     }
 
