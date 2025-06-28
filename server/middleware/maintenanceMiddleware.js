@@ -12,8 +12,13 @@ const maintenanceMiddleware = asyncHandler(async (req, res, next) => {
         return next();
     }
 
-    // Adminin giriş yapabilmesi için auth rotalarını serbest bırak
-    if (req.path.startsWith('/users/auth')) {
+        // Bakım durumunu kontrol eden public endpointi serbest bırak
+    if (req.path === '/settings/status') {
+        return next();
+    }
+
+    // Adminin giriş yapabilmesi için login ve auth rotalarını serbest bırak
+    if (req.path.startsWith('/users/login') || req.path.startsWith('/users/auth')) {
         return next();
     }
 
