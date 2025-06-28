@@ -53,4 +53,23 @@ const salesrep = (req, res, next) => {
     return next(new ErrorHandler('Bu alana erişim için yetkiniz bulunmamaktadır.', 403));
 };
 
-module.exports = { protect, admin, salesrep };
+// Kullanıcının kimliğini doğrular ancak korumalı olmayan rotalar için hata fırlatmaz.
+// Eğer token geçerliyse req.user'ı ayarlar, değilse veya yoksa devam eder.
+const identifyUser = asyncHandler(async (req, res, next) => {
+  let token;
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+    try {
+      token = req.headers.authorization.split(' ')[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id).select('-password');
+    } catch (error) {
+      // Token doğrulanamazsa veya süresi dolmuşsa görmezden gel, req.user tanımsız kalacak
+      req.user = null;
+    }
+  }
+
+  next();
+});
+
+module.exports = { protect, admin, salesrep, identifyUser };

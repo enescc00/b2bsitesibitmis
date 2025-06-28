@@ -61,6 +61,8 @@ import ProductTreeEditPage from './pages/admin/ProductTreeEditPage';
 import QuoteListPage from './pages/admin/QuoteListPage';
 import QuoteEditPage from './pages/admin/QuoteEditPage';
 import BackordersPage from './pages/admin/BackordersPage';
+import PriceListPage from './pages/admin/PriceListPage';
+import PriceListEditPage from './pages/admin/PriceListEditPage';
 
 // Satış Temsilcisi Sayfaları
 import SalesRepDashboardPage from './pages/salesrep/SalesRepDashboardPage';
@@ -177,6 +179,9 @@ const AppContent = () => {
                 <Route path="backorders" element={<BackordersPage />} />
                 <Route path="quotes" element={<QuoteListPage />} />
                 <Route path="quote/:id" element={<QuoteEditPage />} />
+                <Route path="pricelists" element={<PriceListPage />} />
+                <Route path="pricelists/new" element={<PriceListEditPage />} />
+                <Route path="pricelists/edit/:id" element={<PriceListEditPage />} />
             </Route>
 
             {/* Supplier Routes with SupplierLayout */}

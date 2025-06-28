@@ -18,7 +18,6 @@ const morgan = require('morgan');
 const logger = require('./utils/logger');
 const helmet = require('helmet');
 
-
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
 const cron = require('node-cron');
@@ -159,7 +158,7 @@ safeMount('./routes/uploadRoutes', '/api/upload');
 safeMount('./routes/usersMain', '/api/users');
 safeMount('./routes/quotes', '/api/quotes');
 safeMount('./routes/supplier', '/api/supplier');
-
+safeMount('./routes/priceListRoutes', '/api/pricelists');
 
 // ZAMANLANMIŞ GÖREV (CRON JOB)
 // Her gün gece yarısı (00:00) çalışır.
@@ -169,7 +168,6 @@ cron.schedule('0 0 * * *', () => {
     scheduled: true,
     timezone: "Europe/Istanbul"
 });
-
 
 // STATİK DOSYALARA ERİŞİM
 // Uploads klasörü (resimler vb. için)

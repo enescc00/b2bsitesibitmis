@@ -4,11 +4,12 @@ const { body, validationResult } = require('express-validator');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
 const Order = require('../models/Order'); // Yorum kontrolü için Order modelini dahil ediyoruz
-const { protect, admin } = require('../middleware/authMiddleware');
+const { protect, admin, identifyUser } = require('../middleware/authMiddleware');
 // === YENİ IMPORT ===
 // Yeni oluşturduğumuz middleware'i dahil ediyoruz.
 const { adminOrSalesRep } = require('../middleware/adminOrSalesRepMiddleware');
 const upload = require('../config/cloudinary');
+const { calculateProductPrice } = require('../services/pricingService');
 
 // @route   GET /api/products/search-suggestions
 // @desc    Get product suggestions based on a keyword
@@ -34,7 +35,7 @@ router.get('/search-suggestions', async (req, res) => {
 });
 
 // @route   GET /api/products (VİTRİN İÇİN)
-router.get('/', async (req, res) => {
+router.get('/', identifyUser, async (req, res) => {
   const pageSize = 10;
   const page = Number(req.query.pageNumber) || 1;
   let filter = { isActive: true };
@@ -57,12 +58,19 @@ router.get('/', async (req, res) => {
 
   try {
     const count = await Product.countDocuments(filter);
-    const products = await Product.find(filter)
+    let products = await Product.find(filter)
       .populate('category', 'name')
       .limit(pageSize)
-      .skip(pageSize * (page - 1));
+      .skip(pageSize * (page - 1))
+      .lean(); // lean() kullanarak mongoose dökümanlarını sade objelere çeviriyoruz, daha hızlı ve değiştirilebilir.
+
+    // Her ürün için dinamik fiyat hesapla
+    const pricedProducts = await Promise.all(products.map(async (product) => {
+        const price = await calculateProductPrice(product, req.user);
+        return { ...product, price }; // Orijinal ürün fiyatını dinamik fiyatla değiştir
+    }));
       
-    res.json({ products, page, pages: Math.ceil(count / pageSize) });
+    res.json({ products: pricedProducts, page, pages: Math.ceil(count / pageSize) });
   } catch (err) {
     console.error("Ürünler getirilirken hata:", err.message);
     res.status(500).json({ msg: 'Sunucu Hatası', error: err.message });
@@ -85,11 +93,17 @@ router.get('/all', protect, adminOrSalesRep, async (req, res) => {
 });
 
 // @route   GET /api/products/:id (ID ile tek ürün getir)
-router.get('/:id', async (req, res) => {
+router.get('/:id', identifyUser, async (req, res) => {
     try {
         if (!req.params.id.match(/^[0-9a-fA-F]{24}$/)) { return res.status(404).json({ msg: 'Geçersiz ürün IDsi.' }); }
-        const product = await Product.findById(req.params.id).populate('category', 'name');
-        if (product) { res.json(product); } else { res.status(404).json({ msg: 'Ürün bulunamadı' }); }
+        let product = await Product.findById(req.params.id).populate('category', 'name').lean();
+        if (product) {
+            // Dinamik fiyatı hesapla ve ekle
+            product.price = await calculateProductPrice(product, req.user);
+            res.json(product);
+        } else { 
+            res.status(404).json({ msg: 'Ürün bulunamadı' }); 
+        }
     } catch (err) { console.error(`Ürün ID ${req.params.id} getirilirken hata:`, err.message); res.status(500).json({ msg: 'Sunucu Hatası', error: err.message }); }
 });
 

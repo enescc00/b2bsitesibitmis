@@ -69,6 +69,10 @@ function AdminLayout() {
             <i className="fas fa-users"></i>
             <span>Müşteriler</span>
           </NavLink>
+          <NavLink to="/admin/pricelists" className="sidebar-link">
+            <i className="fas fa-tags"></i>
+            <span>Fiyat Listeleri</span>
+          </NavLink>
           <NavLink to="/admin/settings" className="sidebar-link">
             <i className="fas fa-cog"></i>
             <span>Ayarlar</span>

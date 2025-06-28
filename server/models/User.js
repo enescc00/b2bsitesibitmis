@@ -25,6 +25,16 @@ const baseUserSchema = new Schema({
       enum: ['customer', 'supplier', 'sales_rep', 'admin'],
       default: 'customer' 
   },
+  priceList: {
+    type: Schema.Types.ObjectId,
+    ref: 'PriceList',
+    default: null
+  },
+  paymentTerms: {
+    type: String,
+    enum: ['cash', 'credit'], // Nakit, Vadeli
+    default: 'cash'
+  },
   
   isApproved: { type: Boolean, default: false },
   
