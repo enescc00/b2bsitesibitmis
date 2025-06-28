@@ -54,11 +54,34 @@ router.put('/', protect, admin, async (req, res) => {
             settings.currencyRates = req.body.currencyRates;
         }
 
+        // Bakım modu ayarlarını güncelle
+        if (req.body.hasOwnProperty('maintenanceMode')) {
+            settings.maintenanceMode = req.body.maintenanceMode;
+        }
+
+        if (req.body.hasOwnProperty('maintenanceMessage')) {
+            settings.maintenanceMessage = req.body.maintenanceMessage;
+        }
+
         const updatedSettings = await settings.save();
         res.json(updatedSettings);
 
     } catch (error) {
         res.status(500).json({ msg: 'Ayarlar güncellenirken hata oluştu.', error: error.message });
+    }
+});
+
+// @route   GET /api/settings/status
+// @desc    Get maintenance mode status (public)
+router.get('/status', async (req, res) => {
+    try {
+        const settings = await getOrCreateSettings();
+        res.json({
+            maintenanceMode: settings.maintenanceMode,
+            maintenanceMessage: settings.maintenanceMessage
+        });
+    } catch (error) {
+        res.status(500).json({ msg: 'Ayar durumu getirilirken hata oluştu.', error: error.message });
     }
 });
 

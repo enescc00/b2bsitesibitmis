@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -29,6 +29,8 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import MaintenancePage from './pages/MaintenancePage'; // Bakım sayfası
+import { API_BASE_URL } from './config/api'; // API URL
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 
@@ -94,11 +96,40 @@ const MainLayout = () => {
 
 // Ana Rotaları İçeren İçerik Bileşeni
 const AppContent = () => {
-    const { loading } = useContext(AuthContext);
+    const { user, loading, authToken } = useContext(AuthContext);
+    const [maintenanceStatus, setMaintenanceStatus] = useState({ isActive: false, message: '' });
+    const [isCheckingStatus, setIsCheckingStatus] = useState(true);
 
-    // AuthContext yüklenirken bekleme ekranı göster
-    if (loading) {
+    useEffect(() => {
+        const checkMaintenanceStatus = async () => {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/settings/status`);
+                const data = await res.json();
+                if (res.ok) {
+                    setMaintenanceStatus({ isActive: data.maintenanceMode, message: data.maintenanceMessage });
+                } else {
+                    // Hata durumunda siteyi normal çalışır varsayalım ki kimse mağdur olmasın
+                    setMaintenanceStatus({ isActive: false, message: '' });
+                }
+            } catch (error) {
+                console.error("Bakım modu durumu kontrol edilemedi:", error);
+                setMaintenanceStatus({ isActive: false, message: '' });
+            } finally {
+                setIsCheckingStatus(false);
+            }
+        };
+
+        checkMaintenanceStatus();
+    }, []);
+
+    // AuthContext'ten gelen yükleme durumu veya bakım modu kontrolü devam ediyorsa
+    if (loading || isCheckingStatus) {
         return <LoadingScreen />;
+    }
+
+    // Bakım modu aktifse ve kullanıcı admin değilse bakım sayfasını göster
+    if (maintenanceStatus.isActive && (!user || user.role !== 'admin')) {
+        return <MaintenancePage message={maintenanceStatus.message} />;
     }
 
     return (

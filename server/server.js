@@ -16,6 +16,11 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const rateLimit = require('express-rate-limit');
+const hpp = require('hpp');
 const cron = require('node-cron');
 const checkStalePrices = require('./cron/stalePriceChecker');
 
@@ -23,6 +28,7 @@ const checkStalePrices = require('./cron/stalePriceChecker');
 // Artık sorunlu route'ları tespit edebilmek için safeMount fonksiyonunu kullanacağız.
 // Aşağıdaki eski require satırları kaldırıldı.
 const errorMiddleware = require('./middleware/errorMiddleware');
+const maintenanceMiddleware = require('./middleware/maintenanceMiddleware');
 
 // EXPRESS UYGULAMASINI OLUŞTURMA
 const app = express();
@@ -38,10 +44,45 @@ const corsOptions = {
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 };
+// Güvenlik middlewares
+app.use(helmet());
+// Ek güvenlik başlıkları
+app.use(helmet.frameguard({ action: 'deny' })); // X-Frame-Options: DENY
+app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
+app.use(helmet.hsts({ maxAge: 63072000, includeSubDomains: true, preload: true })); // Strict-Transport-Security
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
+    objectSrc: ["'none'"],
+    baseUri: ["'self'"],
+    frameSrc: ["'none'"],
+    frameAncestors: ["'none'"]
+  }
+}));
+app.use(mongoSanitize());
+app.use(xss());
+app.use(hpp());
+
+// CORS
 app.use(cors(corsOptions));
+
+// Günlükleme
 app.use(morgan('combined', { stream: logger.stream }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Global rate limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { msg: 'Çok fazla istek yaptınız, lütfen 15 dakika sonra tekrar deneyin.' }
+});
+app.use('/api', apiLimiter);
+
+// Body parsers (boyut limiti)
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // URL yapılandırma sorunlarını düzeltecek gelişmiş ara yazılım
 app.use((req, res, next) => {
@@ -71,6 +112,9 @@ app.use((req, res, next) => {
     next();
 });
 app.use(cookieParser());
+
+// Bakım modu kontrolü (tüm API rotalarından önce gelmeli)
+app.use('/api', maintenanceMiddleware);
 
 // VERİTABANI BAĞLANTISI
 const MONGO_URI = process.env.MONGO_URI;
