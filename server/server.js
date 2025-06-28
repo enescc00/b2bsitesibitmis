@@ -18,7 +18,7 @@ const morgan = require('morgan');
 const logger = require('./utils/logger');
 const helmet = require('helmet');
 const mongoSanitize = require('express-mongo-sanitize');
-const xss = require('xss-clean');
+
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
 const cron = require('node-cron');
@@ -61,7 +61,6 @@ app.use(helmet.contentSecurityPolicy({
   }
 }));
 app.use(mongoSanitize());
-app.use(xss());
 app.use(hpp());
 
 // CORS
