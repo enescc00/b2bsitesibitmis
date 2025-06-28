@@ -18,7 +18,15 @@ const settingSchema = new mongoose.Schema({
         required: true,
         default: 5
     },
-    currencyRates: [currencyRateSchema]
+    currencyRates: [currencyRateSchema],
+    maintenanceMode: {
+        type: Boolean,
+        default: false
+    },
+    maintenanceMessage: {
+        type: String,
+        default: 'Sitemiz şu anda bakımda. Lütfen daha sonra tekrar deneyin.'
+    }
 });
 
 // Ayarların her zaman tek bir doküman olmasını sağlamak için bir ön-kayıt kancası
