@@ -17,7 +17,7 @@ const path = require('path');
 const morgan = require('morgan');
 const logger = require('./utils/logger');
 const helmet = require('helmet');
-const mongoSanitize = require('express-mongo-sanitize');
+
 
 const rateLimit = require('express-rate-limit');
 const hpp = require('hpp');
@@ -60,7 +60,7 @@ app.use(helmet.contentSecurityPolicy({
     frameAncestors: ["'none'"]
   }
 }));
-app.use(mongoSanitize());
+
 app.use(hpp());
 
 // CORS
