@@ -200,4 +200,39 @@ router.put('/:id/approve', protect, admin, asyncHandler(async (req, res, next) =
     }
 }));
 
+// @route   PUT /api/users/admin/:id/pricing
+// @desc    Admin tarafından bir kullanıcının fiyatlandırma ayarlarını günceller
+// @access  Private/Admin
+router.put('/:id/pricing', protect, admin, [
+    body('priceList').optional().isMongoId().withMessage('Geçerli bir fiyat listesi IDsi giriniz.'),
+    body('paymentTerms').optional().isIn(['cash', 'credit']).withMessage('Ödeme koşulları sadece "cash" veya "credit" olabilir.')
+], asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { priceList, paymentTerms } = req.body;
+    const updates = {};
+
+    if (priceList) updates.priceList = priceList;
+    if (paymentTerms) updates.paymentTerms = paymentTerms;
+
+    if (Object.keys(updates).length === 0) {
+        return res.status(400).json({ msg: 'Güncellenecek bir bilgi sağlanmadı.' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+        req.params.id,
+        { $set: updates },
+        { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!user) {
+        return next(new ErrorHandler('Kullanıcı bulunamadı.', 404));
+    }
+
+    res.json(user);
+}));
+
 module.exports = router;

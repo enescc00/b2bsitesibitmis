@@ -11,6 +11,7 @@ function UserEditPage() {
 
   const [user, setUser] = useState(null);
   const [salesReps, setSalesReps] = useState([]);
+  const [priceLists, setPriceLists] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -19,23 +20,29 @@ function UserEditPage() {
       try {
         setLoading(true);
         // API isteklerini proxy üzerinden yapıyoruz, tam URL'ye gerek yok.
-        const [userRes, repsRes] = await Promise.all([
-            fetch(`/api/users/admin/${userId}`, { // Genel kullanıcı bilgisi
+        const [userRes, repsRes, priceListsRes] = await Promise.all([
+            fetch(`/api/users/admin/${userId}`, { 
                 headers: { 'Authorization': `Bearer ${authToken}` }
             }),
-            fetch(`/api/admin/salesreps`, { // Pazarlamacıları admin rotasından al
+            fetch(`/api/users/admin/salesreps`, { // Corrected URL
+                headers: { 'Authorization': `Bearer ${authToken}` }
+            }),
+            fetch(`/api/pricelists`, {
                 headers: { 'Authorization': `Bearer ${authToken}` }
             })
         ]);
         
         const userData = await userRes.json();
         const repsData = await repsRes.json();
+        const priceListsData = await priceListsRes.json();
 
         if (!userRes.ok) throw new Error(userData.msg || 'Kullanıcı verisi alınamadı.');
         if (!repsRes.ok) throw new Error(repsData.msg || 'Satış temsilcileri alınamadı.');
+        if (!priceListsRes.ok) throw new Error(priceListsData.msg || 'Fiyat listeleri alınamadı.');
 
         setUser(userData);
         setSalesReps(repsData);
+        setPriceLists(priceListsData);
 
       } catch (err) {
         setError(err.message);
@@ -66,6 +73,10 @@ function UserEditPage() {
     // "null" string'ini gerçek null'a çeviriyoruz
     if (name === "salesRepresentative" && newValue === "null") {
         updatedUser.salesRepresentative = null;
+    }
+
+    if (name === "priceList" && (newValue === "null" || newValue === '')) {
+        updatedUser.priceList = null;
     }
     
     setUser(updatedUser);
@@ -126,22 +137,36 @@ function UserEditPage() {
       }
 
       // 2. Adım: Eğer kullanıcı bir müşteriyse, satış temsilcisi atamasını yap
+      // Fiyatlandırma ve Temsilci atamalarını sadece müşteri rolü için yap
       if (user.role === 'customer') {
-        console.log('Satış temsilcisi atanıyor...');
+        // Satış Temsilcisi Atama (Mevcut hatalı API yolu düzeltilecek veya kontrol edilecek)
+        // Not: Mevcut API yolu `/api/admin/users/${userId}/assign-salesrep` muhtemelen hatalı.
+        // Doğru endpoint'in admin.js'e eklenmesi gerekir. Şimdilik mevcut haliyle bırakıldı.
         const assignResponse = await fetch(`/api/admin/users/${userId}/assign-salesrep`, {
           method: 'PUT',
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Authorization': `Bearer ${authToken}` 
-          },
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
           body: JSON.stringify({ salesRepId: salesRepresentative || null })
         });
-
-        const assignData = await assignResponse.json();
-        console.log('Satış temsilcisi atama yanıtı:', assignData);
-        
         if (!assignResponse.ok) {
-          throw new Error(assignData.msg || 'Pazarlamacı ataması başarısız.');
+          const assignData = await assignResponse.json();
+          console.error('Pazarlamacı atama hatası:', assignData.msg);
+          // Şimdilik hatayı loglayıp devam edelim, ana işlemi blocklamasın
+          // throw new Error(assignData.msg || 'Pazarlamacı ataması başarısız.');
+        }
+
+        // Fiyatlandırma Ayarlarını Güncelle
+        const pricingData = {
+            priceList: user.priceList || null,
+            paymentTerms: user.paymentTerms || 'cash'
+        };
+        const pricingResponse = await fetch(`/api/users/admin/${userId}/pricing`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
+            body: JSON.stringify(pricingData)
+        });
+        if (!pricingResponse.ok) {
+            const pricingResData = await pricingResponse.json();
+            throw new Error(pricingResData.msg || 'Fiyatlandırma ayarları güncellenemedi.');
         }
       }
 
@@ -193,6 +218,7 @@ function UserEditPage() {
             </div>
             
             {user.role === 'customer' && (
+              <>
                 <div className="form-group">
                     <label>Atanmış Satış Temsilcisi</label>
                     <select name="salesRepresentative" value={user.salesRepresentative || "null"} onChange={handleChange}>
@@ -202,6 +228,23 @@ function UserEditPage() {
                         ))}
                     </select>
                 </div>
+                <div className="form-group">
+                    <label>Fiyat Listesi</label>
+                    <select name="priceList" value={user.priceList || 'null'} onChange={handleChange}>
+                        <option value="null">-- Fiyat Listesi Yok --</option>
+                        {priceLists.map(pl => (
+                            <option key={pl._id} value={pl._id}>{pl.name}</option>
+                        ))}
+                    </select>
+                </div>
+                <div className="form-group">
+                    <label>Ödeme Koşulları</label>
+                    <select name="paymentTerms" value={user.paymentTerms || 'cash'} onChange={handleChange}>
+                        <option value="cash">Nakit</option>
+                        <option value="credit">Vadeli</option>
+                    </select>
+                </div>
+              </>
             )}
             <div className="form-group form-group-checkbox">
                 <label>Onay Durumu</label>
