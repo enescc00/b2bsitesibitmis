@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import './Form.css';
 import cityData from '../data/turkey-provinces-districts.json';
-import { API_BASE_URL } from '../config/api';
+import apiRequest from '../utils/apiHelper';
 
 // === DEĞİŞİKLİK BURADA: Bileşenleri ana fonksiyonun DIŞINA taşıdık ===
 
@@ -88,21 +88,12 @@ function RegisterPage() {
     };
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users/auth/register`, {
+      const response = await apiRequest('/users/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(submissionData),
-        credentials: 'include' // CORS için cookie'lerin gönderilmesini sağlar
+        body: JSON.stringify(submissionData)
       });
       const data = await response.json();
-      if (!response.ok) {
-        // Gelen hata bir dizi ise, tüm mesajları göster
-        if (data.errors) {
-            const errorMsg = data.errors.map(err => err.msg).join('\n');
-            throw new Error(errorMsg);
-        }
-        throw new Error(data.msg || 'Kayıt işlemi başarısız.');
-      }
+      // apiRequest zaten hata kontrolü yapıyor
       
       toast.success('Kayıt başarılı! Giriş sayfasına yönlendiriliyorsunuz...');
       setTimeout(() => navigate('/login'), 2000);

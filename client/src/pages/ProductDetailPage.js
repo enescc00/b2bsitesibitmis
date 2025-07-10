@@ -5,6 +5,7 @@ import { toast } from 'react-toastify';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
 import Rating from '../components/Rating';
+import apiRequest from '../utils/apiHelper';
 import './ProductDetailPage.css';
 
 // İsimleri anonimleştirmek için yardımcı fonksiyon
@@ -47,9 +48,8 @@ function ProductDetailPage() {
     const fetchProduct = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`/api/products/${id}`);
+            const res = await apiRequest(`/products/${id}`);
             const data = await res.json();
-            if (!res.ok) throw new Error(data.msg || 'Ürün bulunamadı.');
             setProduct(data);
             if (data.images && data.images.length > 0) {
                 setActiveImage(data.images[0]);
@@ -83,16 +83,14 @@ function ProductDetailPage() {
         e.preventDefault();
         setReviewLoading(true);
         try {
-            const res = await fetch(`/api/products/${id}/reviews`, {
+            const res = await apiRequest(`/products/${id}/reviews`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${authToken}`
                 },
                 body: JSON.stringify({ rating, comment })
             });
             const data = await res.json();
-            if (!res.ok) throw new Error(data.msg);
             
             toast.success('Yorumunuz başarıyla gönderildi!');
             setRating(0);
