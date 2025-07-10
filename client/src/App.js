@@ -25,7 +25,7 @@ import SalesRepLayout from './components/salesrep/SalesRepLayout';
 import ProfileLayout from './pages/profile/ProfileLayout';
 
 // Genel Sayfalar
-import LoginPage from './pages/LoginPage';
+import AuthPage from './pages/AuthPage';
 import RegisterPage from './pages/RegisterPage';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -146,7 +146,7 @@ const AppContent = () => {
     return (
         <Routes>
             {/* Routes without MainLayout */}
-            <Route path="/login" element={<LoginPage />} />
+            <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<RegisterPage />} />
 
             {/* Admin Routes with AdminLayout */}
