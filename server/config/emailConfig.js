@@ -1,18 +1,18 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
-const nodemailerHbs = require('nodemailer-express-handlebars');
+const { create } = require('express-handlebars');
+const hbs = require('nodemailer-express-handlebars');
+const { createTransport } = nodemailer;
 
 // E-posta göndermek için transport oluştur
 // Not: Bu bilgileri gerçek bir mail servis sağlayıcısıyla değiştirin
 const createTransporter = () => {
-  // Gmail için örnek yapılandırma
-  // Not: Gmail için "Daha az güvenli uygulamalara izin ver" ayarını etkinleştirmeniz gerekebilir
-  // Canlı ortamda bunun yerine SMTP servisi veya Gmail API kullanmanız daha güvenlidir
-  const transporter = nodemailer.createTransport({
-    service: 'gmail', // Farklı servisler için: 'hotmail', 'yahoo' vb.
+  // Gmail için yapılandırma
+  const transporter = createTransport({
+    service: process.env.EMAIL_SERVICE || 'gmail', 
     auth: {
-      user: process.env.EMAIL_USER || 'ornek@gmail.com', // E-posta adresi
-      pass: process.env.EMAIL_PASSWORD || 'sifre123', // E-posta şifresi veya uygulama şifresi
+      user: process.env.EMAIL_USER || 'ornek@gmail.com',
+      pass: process.env.EMAIL_PASSWORD || 'sifre123',
     },
   });
 
@@ -29,7 +29,7 @@ const createTransporter = () => {
   };
 
   // Handlebars şablon motorunu transporter'a ekle
-  transporter.use('compile', nodemailerHbs(handlebarOptions));
+  transporter.use('compile', hbs(handlebarOptions));
 
   return transporter;
 };
