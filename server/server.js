@@ -217,9 +217,12 @@ app.use(errorMiddleware);
 
 
 // SUNUCUYU BAŞLATMA
-const PORT = process.env.PORT || 3000;
+// Render ortamında process.env.PORT her zaman ayarlanmış olmalıdır
+const PORT = parseInt(process.env.PORT || '3000', 10);
+console.log(`Kullanılan PORT değişkeni: ${process.env.PORT || '3000 (varsayılan)'}`);
+
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Sunucu ${PORT} portunda çalışıyor.`);
+    console.log(`Sunucu ${PORT} portunda 0.0.0.0 adresinde çalışıyor (Render için).`);
     // Sunucu ilk başladığında da bir kontrol yapalım
     console.log('Sunucu başlangıcında ilk bayat fiyat kontrolü yapılıyor...');
     checkStalePrices();
