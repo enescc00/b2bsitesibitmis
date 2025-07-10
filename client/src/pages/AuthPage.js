@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import { API_BASE_URL } from '../config/api';
 import './AuthPage.css';
 
 function LoginPage() {
@@ -20,10 +21,11 @@ function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      const response = await fetch('/api/users/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/users/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
+        credentials: 'include' // CORS için cookie'lerin gönderilmesini sağlar
       });
       const data = await response.json();
       if (!response.ok) {
