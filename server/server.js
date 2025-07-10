@@ -60,8 +60,9 @@ app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
 app.use(helmet.hsts({ maxAge: 63072000, includeSubDomains: true, preload: true })); // Strict-Transport-Security
 app.use(helmet.contentSecurityPolicy({
   directives: {
-    defaultSrc: ["'self'"],
+    defaultSrc: ["'self'", "https://b2bsitesibitmis.onrender.com", "https://curkuslar.online"],
     scriptSrc: ["'self'", "'unsafe-inline'"],
+    connectSrc: ["'self'", "https://b2bsitesibitmis.onrender.com", "https://curkuslar.online", "wss://*"],
     imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
     objectSrc: ["'none'"],
     baseUri: ["'self'"],
