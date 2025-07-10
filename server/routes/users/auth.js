@@ -2,13 +2,16 @@ const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const { generateAccessToken, generateRefreshToken } = require('../../utils/tokenService');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const asyncHandler = require('express-async-handler');
 const ErrorHandler = require('../../utils/errorHandler');
 const { User, IndividualUser, CorporateUser } = require('../../models/User');
+const Token = require('../../models/Token');
 const { protect, admin } = require('../../middleware/authMiddleware');
+const { sendWelcomeEmail, sendPasswordResetEmail } = require('../../services/emailService');
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -91,7 +94,17 @@ router.post('/register', authLimiter, [
         }
 
         await newUser.save();
-        res.status(201).json({ msg: 'Kayıt başarıyla oluşturuldu. Admin onayından sonra hesabınız aktif olacak.' });
+        
+        // Hoş geldin e-postası gönder
+        try {
+            await sendWelcomeEmail(newUser);
+            console.log(`${newUser.email} adresine hoş geldin e-postası gönderildi.`);
+        } catch (emailError) {
+            console.error('Hoş geldin e-postası gönderilirken hata oluştu:', emailError);
+            // E-posta gönderiminde hata oluşsa da kullanıcıya başarılı kayıt mesajı gönder
+        }
+        
+        res.status(201).json({ msg: 'Kayıt başarıyla oluşturuldu. Admin onayından sonra hesabınız aktif olacak. E-posta adresinize bir hoş geldin mesajı gönderildi.' });
     } catch (error) {
         console.error("KAYIT İŞLEMİNDE KRİTİK HATA:", error);
         next(error);
@@ -210,6 +223,110 @@ router.get('/verifytoken', protect, asyncHandler(async (req, res) => {
 router.get('/verifytoken', protect, asyncHandler(async (req, res) => {
     // Eski versiyon için aynı işlevi görür
     res.status(200).json({ valid: true, user: req.user });
+}));
+
+// @route   POST /api/users/auth/forgot-password
+// @desc    Şifre sıfırlama e-postası gönderir
+// @access  Public
+router.post('/forgot-password', [
+    body('email', 'Lütfen geçerli bir e-posta adresi girin.').isEmail().normalizeEmail()
+], asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+        // Güvenlik nedeniyle kullanıcı bulunamasa bile başarılı mesaj döndür
+        return res.status(200).json({ 
+            msg: 'Eğer bu e-posta adresine sahip bir hesap varsa, şifre sıfırlama talimatları gönderilecektir.'
+        });
+    }
+
+    try {
+        // Önceki tokenleri temizle (aynı kullanıcı için)
+        await Token.deleteMany({ userId: user._id, type: 'passwordReset' });
+        
+        // Şifre sıfırlama e-postası gönder
+        const result = await sendPasswordResetEmail(user, Token);
+        
+        if (!result.success) {
+            return next(new ErrorHandler('E-posta gönderilirken bir hata oluştu.', 500));
+        }
+        
+        res.status(200).json({ 
+            msg: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.'
+        });
+    } catch (error) {
+        console.error('Şifre sıfırlama e-postası gönderilirken hata:', error);
+        next(new ErrorHandler('Şifre sıfırlama işlemi sırasında bir hata oluştu.', 500));
+    }
+}));
+
+// @route   POST /api/users/auth/reset-password/:token
+// @desc    Token ile şifreyi sıfırlar
+// @access  Public
+router.post('/reset-password/:token', [
+    body('password', 'Şifre en az 6 karakter olmalıdır.').isLength({ min: 6 }),
+    body('confirmPassword', 'Şifreler eşleşmiyor.').custom((value, { req }) => {
+        if (value !== req.body.password) {
+            throw new Error('Şifreler eşleşmiyor.');
+        }
+        return true;
+    })
+], asyncHandler(async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+    
+    const { token } = req.params;
+    const { password } = req.body;
+    
+    try {
+        // Token'ı hash'le (DB'de hash'lenmiş şekilde saklanıyor)
+        const hashedToken = crypto
+            .createHash('sha256')
+            .update(token)
+            .digest('hex');
+        
+        // Token DB'de var mı kontrol et
+        const passwordResetToken = await Token.findOne({ 
+            token: hashedToken, 
+            type: 'passwordReset',
+            expires: { $gt: Date.now() }
+        });
+        
+        if (!passwordResetToken) {
+            return next(new ErrorHandler('Geçersiz veya süresi dolmuş token.', 400));
+        }
+        
+        // İlgili kullanıcıyı bul
+        const user = await User.findById(passwordResetToken.userId);
+        
+        if (!user) {
+            return next(new ErrorHandler('Kullanıcı bulunamadı.', 404));
+        }
+        
+        // Yeni şifreyi hash'le
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        
+        // Şifreyi güncelle
+        user.password = hashedPassword;
+        await user.save();
+        
+        // Token'ı sil
+        await passwordResetToken.deleteOne();
+        
+        res.status(200).json({ msg: 'Şifreniz başarıyla sıfırlandı. Yeni şifrenizle giriş yapabilirsiniz.' });
+    } catch (error) {
+        console.error('Şifre sıfırlama hatası:', error);
+        next(new ErrorHandler('Şifre sıfırlama işlemi sırasında bir hata oluştu.', 500));
+    }
 }));
 
 module.exports = router;

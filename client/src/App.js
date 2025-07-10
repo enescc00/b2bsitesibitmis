@@ -33,6 +33,8 @@ import MaintenancePage from './pages/MaintenancePage'; // Bakım sayfası
 import { API_BASE_URL } from './config/api'; // API URL
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 // Profil Sayfaları
 import MyOrdersPage from './pages/profile/MyOrdersPage';
@@ -145,9 +147,12 @@ const AppContent = () => {
 
     return (
         <Routes>
-            {/* Routes without MainLayout */}
+            {/* Authentication routes without layout */}
             <Route path="/login" element={<AuthPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+            <Route path="/maintenance" element={<MaintenancePage />} />
 
             {/* Admin Routes with AdminLayout */}
             <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
