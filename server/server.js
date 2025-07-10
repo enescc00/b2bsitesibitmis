@@ -37,20 +37,33 @@ const app = express();
 app.set('trust proxy', 1);
 
 // ORTA KATMAN YAZILIMLARI (MIDDLEWARE)
-const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(item => item.trim());
+// Kesin olarak izin verilen origin'leri belirt
+const allowedOrigins = ['http://localhost:3000', 'https://localhost:3000', 'https://b2bsitesibitmis.onrender.com', 'https://curkuslar.online', 'https://www.curkuslar.online'];
+
+console.log('CORS için izin verilen originler:', allowedOrigins);
 
 const corsOptions = {
-    origin: (origin, callback) => {
-        // Kaynağı olmayan isteklere izin ver (mobil uygulamalar veya curl istekleri gibi)
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('CORS tarafından izin verilmiyor'));
+    origin: function(origin, callback) {
+        // Kaynağı olmayan isteklere izin ver (Postman, curl vb.)
+        if (!origin) {
+            console.log('Origin olmayan istek kabul edildi');
+            return callback(null, true);
         }
+        
+        // İzin verilen originler listesinde varsa izin ver
+        if (allowedOrigins.indexOf(origin) !== -1) {
+            console.log('CORS izni verilen origin:', origin);
+            return callback(null, true);
+        }
+
+        // Debug için
+        console.log('CORS izni reddedilen origin:', origin);
+        callback(new Error('CORS tarafından izin verilmiyor: ' + origin));
     },
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Access-Control-Allow-Origin']
 };
 // Güvenlik middlewares
 app.use(helmet());
