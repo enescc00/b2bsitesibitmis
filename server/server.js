@@ -217,9 +217,9 @@ app.use(errorMiddleware);
 
 
 // SUNUCUYU BAŞLATMA
-const PORT = process.env.PORT || 5001;
-app.listen(PORT, () => {
-    console.log(`Sunucu http://localhost:${PORT} adresinde çalışıyor.`);
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Sunucu ${PORT} portunda çalışıyor.`);
     // Sunucu ilk başladığında da bir kontrol yapalım
     console.log('Sunucu başlangıcında ilk bayat fiyat kontrolü yapılıyor...');
     checkStalePrices();
