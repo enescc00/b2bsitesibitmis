@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import './Form.css';
 import cityData from '../data/turkey-provinces-districts.json';
+import { API_BASE_URL } from '../config/api';
 
 // === DEĞİŞİKLİK BURADA: Bileşenleri ana fonksiyonun DIŞINA taşıdık ===
 
@@ -87,10 +88,11 @@ function RegisterPage() {
     };
 
     try {
-      const response = await fetch('/api/users/auth/register', {
+      const response = await fetch(`${API_BASE_URL}/api/users/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submissionData),
+        credentials: 'include' // CORS için cookie'lerin gönderilmesini sağlar
       });
       const data = await response.json();
       if (!response.ok) {
