@@ -1,5 +1,5 @@
 const PriceList = require('../models/priceListModel');
-const Settings = require('../models/settingsModel');
+const Settings = require('../models/Setting');
 
 /**
  * Verilen ürün ve kullanıcı için dinamik fiyatı hesaplar.
