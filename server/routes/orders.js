@@ -5,6 +5,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const SupplierOrder = require('../models/SupplierOrder');
 const { User } = require('../models/User');
+const { sendOrderStatusUpdateEmail } = require('../services/emailService');
 
 // @route   GET /api/orders (Tüm siparişleri listele - Admin, Sayfalama ve Tarih Filtresi ile)
 // @access  Private/Admin
@@ -94,21 +95,59 @@ router.get('/:id', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.patch('/:id/status', protect, admin, async (req, res) => {
     try {
-        const { status, packagesCount } = req.body;
+        const { status, packagesCount, trackingNumber } = req.body;
         const allowedStatuses = ['Onay Bekliyor','Beklemede','Hazırlanıyor','Kargoya Verildi','Teslim Edildi','İptal Edildi','Kısmi Tamamlandı'];
         if (!allowedStatuses.includes(status)) {
             return res.status(400).json({ msg: 'Geçersiz durum.' });
         }
-        const order = await Order.findById(req.params.id);
+        
+        const order = await Order.findById(req.params.id).populate('user', 'email name');
         if (!order) return res.status(404).json({ msg: 'Sipariş bulunamadı' });
+        
+        // Sipariş durumu değişti mi kontrol et
+        const statusChanged = order.status !== status;
+        const previousStatus = order.status;
+        
+        // Yeni durum ata
         order.status = status;
+        
         if (status === 'Kargoya Verildi') {
             if (!packagesCount || packagesCount < 1) {
                 return res.status(400).json({ msg: 'Kargo koli adedi gereklidir.' });
             }
             order.packagesCount = packagesCount;
+            order.shippedAt = Date.now();
+            
+            // Takip numarası varsa ekle
+            if (trackingNumber) {
+                order.trackingNumber = trackingNumber;
+            }
         }
-        await order.save();
+        
+        // Sipariş kaydedilir
+        const updatedOrder = await order.save();
+        
+        // Durum değişikliğinde e-posta gönder (özellikle kargoya verildi veya teslim edildi durumlarında)
+        if (statusChanged && order.user && order.user.email) {
+            try {
+                // E-posta göndermenin önemli olduğu durumlar
+                const importantStatuses = ['Kargoya Verildi', 'Teslim Edildi', 'İptal Edildi'];
+                
+                if (importantStatuses.includes(status)) {
+                    await sendOrderStatusUpdateEmail({
+                        order: updatedOrder,
+                        user: order.user,
+                        previousStatus,
+                        newStatus: status
+                    });
+                    console.log(`${order.user.email} adresine ${status} durumu hakkında bildirim e-postası gönderildi.`);
+                }
+            } catch (emailError) {
+                console.error(`Sipariş durumu e-postası gönderilirken hata: ${emailError.message}`);
+                // E-posta gönderiminde hata oluşsa da işleme devam et
+            }
+        }
+        
         res.json(order);
     } catch (error) {
         console.error(error);
@@ -171,14 +210,56 @@ router.put('/:id', protect, admin, async (req, res) => {
 // @access  Private/Admin
 router.put('/:id/status', protect, admin, async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
-        if (order) {
-            order.status = req.body.status;
-            const updatedOrder = await order.save();
-            res.json(updatedOrder);
-        } else {
-            res.status(404).json({ msg: 'Sipariş bulunamadı' });
+        const { status, trackingNumber } = req.body;
+        const allowedStatuses = ['Onay Bekliyor','Beklemede','Hazırlanıyor','Kargoya Verildi','Teslim Edildi','İptal Edildi','Kısmi Tamamlandı'];
+        
+        if (!allowedStatuses.includes(status)) {
+            return res.status(400).json({ msg: 'Geçersiz durum.' });
         }
+        
+        const order = await Order.findById(req.params.id).populate('user', 'email name');
+        
+        if (!order) {
+            return res.status(404).json({ msg: 'Sipariş bulunamadı' });
+        }
+        
+        // Sipariş durumu değişti mi kontrol et
+        const statusChanged = order.status !== status;
+        const previousStatus = order.status;
+        
+        // Yeni durum ata
+        order.status = status;
+        
+        // Kargoya verildi durumunda takip numarası ekle
+        if (status === 'Kargoya Verildi' && trackingNumber) {
+            order.trackingNumber = trackingNumber;
+            order.shippedAt = Date.now();
+        }
+        
+        const updatedOrder = await order.save();
+        
+        // Durum değişikliğinde e-posta gönder (özellikle kargoya verildi veya teslim edildi durumlarında)
+        if (statusChanged && order.user && order.user.email) {
+            try {
+                // E-posta göndermenin önemli olduğu durumlar
+                const importantStatuses = ['Kargoya Verildi', 'Teslim Edildi', 'İptal Edildi'];
+                
+                if (importantStatuses.includes(status)) {
+                    await sendOrderStatusUpdateEmail({
+                        order: updatedOrder,
+                        user: order.user,
+                        previousStatus,
+                        newStatus: status
+                    });
+                    console.log(`${order.user.email} adresine ${status} durumu hakkında bildirim e-postası gönderildi.`);
+                }
+            } catch (emailError) {
+                console.error(`Sipariş durumu e-postası gönderilirken hata: ${emailError.message}`);
+                // E-posta gönderiminde hata oluşsa da işleme devam et
+            }
+        }
+        
+        res.json(updatedOrder);
     } catch (error) {
         console.error(error);
         res.status(500).json({ msg: 'Sunucu Hatası' });
@@ -227,6 +308,24 @@ router.post('/', protect, async (req, res) => {
         totalPrice: subTotal
       });
       await supOrder.save();
+    }
+    
+    // Sipariş onay e-postası gönder
+    try {
+      // Kullanıcı bilgilerini al
+      const user = await User.findById(req.user._id).select('name email');
+      if (user && user.email) {
+        await sendOrderStatusUpdateEmail({
+          order: createdOrder,
+          user: user,
+          previousStatus: null,
+          newStatus: 'Onay Bekliyor'
+        });
+        console.log(`${user.email} adresine yeni sipariş onay e-postası gönderildi.`);
+      }
+    } catch (emailError) {
+      console.error('Sipariş onay e-postası gönderilirken hata:', emailError);
+      // E-posta gönderimi başarısız olsa da siparişi kaydet
     }
 
     res.status(201).json(createdOrder);

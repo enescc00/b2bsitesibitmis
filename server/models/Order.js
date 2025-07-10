@@ -42,6 +42,8 @@ const OrderSchema = new Schema({
     default: 0.0
   },
   packagesCount: { type: Number, default: 1 },
+  trackingNumber: { type: String },
+  shippedAt: { type: Date },
   // === DEĞİŞİKLİK: Sipariş onayı için yeni durum eklendi ===
   status: {
     type: String,
