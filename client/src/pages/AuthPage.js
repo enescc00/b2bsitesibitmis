@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import './LoginPage.css';
+import './AuthPage.css';
 
 function LoginPage() {
   const [email, setEmail] = useState('');
