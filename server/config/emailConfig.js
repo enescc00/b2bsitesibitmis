@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const path = require('path');
-const hbs = require('nodemailer-express-handlebars');
+const nodemailerHbs = require('nodemailer-express-handlebars');
 
 // E-posta göndermek için transport oluştur
 // Not: Bu bilgileri gerçek bir mail servis sağlayıcısıyla değiştirin
@@ -29,7 +29,7 @@ const createTransporter = () => {
   };
 
   // Handlebars şablon motorunu transporter'a ekle
-  transporter.use('compile', hbs(handlebarOptions));
+  transporter.use('compile', nodemailerHbs(handlebarOptions));
 
   return transporter;
 };
