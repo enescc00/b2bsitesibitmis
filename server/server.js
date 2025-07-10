@@ -37,8 +37,17 @@ const app = express();
 app.set('trust proxy', 1);
 
 // ORTA KATMAN YAZILIMLARI (MIDDLEWARE)
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:3000').split(',').map(item => item.trim());
+
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (origin, callback) => {
+        // Kaynağı olmayan isteklere izin ver (mobil uygulamalar veya curl istekleri gibi)
+        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            callback(new Error('CORS tarafından izin verilmiyor'));
+        }
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
