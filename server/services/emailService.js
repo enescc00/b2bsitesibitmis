@@ -187,8 +187,12 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
   }
 };
 
+// Uyum için eski fonksiyon adını yönlendir
+const sendOrderStatusUpdateEmail = sendOrderStatusEmail;
+
 module.exports = {
   sendWelcomeEmail,
   sendPasswordResetEmail,
-  sendOrderStatusEmail
+  sendOrderStatusEmail,
+  sendOrderStatusUpdateEmail
 };
