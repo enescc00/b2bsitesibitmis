@@ -1,5 +1,6 @@
 const crypto = require('crypto');
-const { sendEmail } = require('../config/emailConfig');
+// NOT: Circular dependency'den kaçınmak için doğrudan import etmiyoruz
+// emailConfig'i sadece ihtiyaç olduğunda require edeceğiz
 
 /**
  * Hoş geldin e-postası gönder
@@ -7,30 +8,43 @@ const { sendEmail } = require('../config/emailConfig');
  * @returns {Promise} Gönderim durumu
  */
 const sendWelcomeEmail = async (user) => {
-  const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
-  
-  const mailOptions = {
-    from: '"B2B Sistemi" <noreply@b2bsistemi.com>',
-    to: user.email,
-    subject: 'B2B Sistemine Hoş Geldiniz',
-    template: 'welcome',
-    context: {
-      name: user.name || user.firstName || 'Değerli Üyemiz',
-      email: user.email,
-      loginUrl: `${clientBaseUrl}/login`
-    }
-  };
-  
-  return sendEmail(mailOptions);
+  try {
+    console.log('Hoşgeldin e-postası gönderiliyor:', user.email);
+    
+    const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
+    
+    // emailConfig'i sadece burada require et (circular dependency'den kaçınmak için)
+    const emailConfig = require('../config/emailConfig');
+    
+    const result = await emailConfig.sendEmail({
+      to: user.email,
+      subject: 'B2B Sistemine Hoş Geldiniz',
+      template: 'welcome',
+      context: {
+        name: user.name || user.firstName || 'Değerli Üyemiz',
+        email: user.email,
+        loginUrl: `${clientBaseUrl}/login`
+      }
+    });
+    
+    console.log('Hoşgeldin e-postası gönderme sonucu:', result);
+    return result;
+  } catch (error) {
+    console.error('Hoşgeldin e-postası gönderilirken hata:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 /**
  * Şifre sıfırlama tokeni oluştur ve e-posta gönder
  * @param {Object} user - Kullanıcı bilgileri
+ * @param {Object} tokenModel - Token modeli (MongoDB model)
  * @returns {Promise} Token ve gönderim durumu
  */
 const sendPasswordResetEmail = async (user, tokenModel) => {
   try {
+    console.log('Şifre sıfırlama e-postası gönderiliyor:', user.email);
+    
     // Rastgele token oluştur
     const resetToken = crypto.randomBytes(32).toString('hex');
     
@@ -40,6 +54,8 @@ const sendPasswordResetEmail = async (user, tokenModel) => {
       .createHash('sha256')
       .update(resetToken)
       .digest('hex');
+    
+    console.log('Token oluşturuldu, veritabanına kaydediliyor');
     
     // Token veritabanında saklanmalı - ya kullanıcı modelinde ya da ayrı token modelinde
     if (tokenModel) {
@@ -60,19 +76,28 @@ const sendPasswordResetEmail = async (user, tokenModel) => {
     const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
     const resetUrl = `${clientBaseUrl}/reset-password/${resetToken}`;
     
-    const mailOptions = {
-      from: '"B2B Sistemi" <noreply@b2bsistemi.com>',
+    console.log('Reset URL:', resetUrl);
+    
+    // Template işleyen ve e-posta gönderen fonksiyonları al
+    const emailConfig = require('../config/emailConfig');
+    
+    // Şablon verilerini hazırla
+    const templateData = {
+      name: user.name || user.firstName || 'Değerli Üyemiz',
+      resetUrl,
+      expiryTime: 1 // Saat cinsinden geçerlilik süresi
+    };
+    
+    // E-posta gönderme işlemi
+    const result = await emailConfig.sendEmail({
       to: user.email,
       subject: 'Şifre Sıfırlama İsteği',
       template: 'password-reset',
-      context: {
-        name: user.name || user.firstName || 'Değerli Üyemiz',
-        resetUrl,
-        expiryTime: 1 // Saat cinsinden geçerlilik süresi
-      }
-    };
+      context: templateData
+    });
     
-    const result = await sendEmail(mailOptions);
+    console.log('E-posta gönderme sonucu:', result);
+    
     return { success: result.success, token: resetToken };
   } catch (error) {
     console.error('Şifre sıfırlama e-postası gönderilirken hata:', error);
@@ -88,44 +113,46 @@ const sendPasswordResetEmail = async (user, tokenModel) => {
  * @returns {Promise} Gönderim durumu
  */
 const sendOrderStatusEmail = async (user, order, newStatus) => {
-  // Durum değişikliğine göre uygun mesaj ve sınıfı belirle
-  const statusMap = {
-    'processing': {
-      text: 'İşleme Alındı',
-      class: 'processing',
-      message: 'Siparişiniz işleme alındı ve hazırlanıyor.'
-    },
-    'shipped': {
-      text: 'Kargoya Verildi',
-      class: 'shipped',
-      message: 'Siparişiniz kargoya verildi! Takip numarasını kullanarak kargonuzu takip edebilirsiniz.'
-    },
-    'delivered': {
-      text: 'Teslim Edildi',
-      class: 'delivered',
-      message: 'Siparişiniz teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.'
-    },
-    'cancelled': {
-      text: 'İptal Edildi',
-      class: 'cancelled',
-      message: 'Siparişiniz iptal edildi. Detaylı bilgi için müşteri hizmetlerimizle iletişime geçebilirsiniz.'
-    }
-  };
-  
-  const statusInfo = statusMap[newStatus] || {
-    text: 'Güncellendi',
-    class: 'default',
-    message: 'Siparişinizin durumu güncellendi.'
-  };
-  
-  const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
-  
-  const mailOptions = {
-    from: '"B2B Sistemi" <noreply@b2bsistemi.com>',
-    to: user.email,
-    subject: `Sipariş Durumu: ${statusInfo.text} - #${order._id}`,
-    template: 'order-update',
-    context: {
+  try {
+    console.log('Sipariş durumu e-postası gönderiliyor:', user.email);
+    
+    // Durum değişikliğine göre uygun mesaj ve sınıfı belirle
+    const statusMap = {
+      'processing': {
+        text: 'İşleme Alındı',
+        class: 'processing',
+        message: 'Siparişiniz işleme alındı ve hazırlanıyor.'
+      },
+      'shipped': {
+        text: 'Kargoya Verildi',
+        class: 'shipped',
+        message: 'Siparişiniz kargoya verildi! Takip numarasını kullanarak kargonuzu takip edebilirsiniz.'
+      },
+      'delivered': {
+        text: 'Teslim Edildi',
+        class: 'delivered',
+        message: 'Siparişiniz teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.'
+      },
+      'cancelled': {
+        text: 'İptal Edildi',
+        class: 'cancelled',
+        message: 'Siparişiniz iptal edildi. Detaylı bilgi için müşteri hizmetlerimizle iletişime geçebilirsiniz.'
+      }
+    };
+    
+    const statusInfo = statusMap[newStatus] || {
+      text: 'Güncellendi',
+      class: 'default',
+      message: 'Siparişinizin durumu güncellendi.'
+    };
+    
+    const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
+    
+    // emailConfig'i sadece burada require et (circular dependency'den kaçınmak için)
+    const emailConfig = require('../config/emailConfig');
+    
+    // Şablon verilerini hazırla
+    const templateData = {
       name: user.name || user.firstName || 'Değerli Müşterimiz',
       orderId: order._id,
       orderDate: new Date(order.createdAt).toLocaleDateString('tr-TR'),
@@ -142,10 +169,22 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
       })),
       totalAmount: order.totalAmount.toFixed(2),
       orderDetailsUrl: `${clientBaseUrl}/account/orders/${order._id}`
-    }
-  };
-  
-  return sendEmail(mailOptions);
+    };
+    
+    // E-posta gönderme işlemi
+    const result = await emailConfig.sendEmail({
+      to: user.email,
+      subject: `Sipariş Durumu: ${statusInfo.text} - #${order._id}`,
+      template: 'order-update',
+      context: templateData
+    });
+    
+    console.log('Sipariş durumu e-postası gönderme sonucu:', result);
+    return result;
+  } catch (error) {
+    console.error('Sipariş durumu e-postası gönderilirken hata:', error);
+    return { success: false, error: error.message };
+  }
 };
 
 module.exports = {
