@@ -187,8 +187,10 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
   }
 };
 
-// Uyum için eski fonksiyon adını yönlendir
-const sendOrderStatusUpdateEmail = sendOrderStatusEmail;
+// Uyum için eski fonksiyon imzasını destekleyen sarmalayıcı
+const sendOrderStatusUpdateEmail = async ({ user, order, newStatus }) => {
+  return sendOrderStatusEmail(user, order, newStatus);
+};
 
 module.exports = {
   sendWelcomeEmail,
