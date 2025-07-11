@@ -23,7 +23,7 @@ const ForgotPasswordPage = () => {
       setMessage('');
       
       // API çağrısı yaparken tam URL kullanılıyor (API_BASE_URL'den yararlanarak)
-      const response = await fetch(`${API_BASE_URL}/users/auth/forgot-password`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/auth/forgot-password`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
