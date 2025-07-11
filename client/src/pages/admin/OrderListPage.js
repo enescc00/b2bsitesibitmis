@@ -113,7 +113,7 @@ function OrderListPage() {
           <tbody>
             {orders.map(order => (
               <tr key={order._id} onClick={() => handleRowClick(order._id)} className="clickable-row">
-                <td>#{order._id.substring(0,8)}...</td>
+                                <td>#{String(order.orderNumber).padStart(4, '0')}</td>
                 <td>{order.user ? order.user.name : 'Silinmiş Kullanıcı'}</td>
                 <td>{new Date(order.createdAt).toLocaleDateString('tr-TR')}</td>
                 <td>{order.totalPrice.toFixed(2)} ₺</td>
