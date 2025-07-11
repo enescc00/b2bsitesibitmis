@@ -6,57 +6,86 @@
     <title>Sipariş Durumu Güncellendi</title>
     <style>
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         .header {
             background-color: #0078d7;
-            color: white;
-            padding: 10px 20px;
+            padding: 20px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
+        }
+        .header-logo {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
         }
         .content {
-            padding: 20px;
+            padding: 30px;
+        }
+        .update-alert {
+            background-color: #e8f4fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #0078d7;
+            font-weight: bold;
+            font-size: 16px;
         }
         .button {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 24px;
             margin: 20px 0;
             background-color: #0078d7;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
         }
         .order-info {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
+            background-color: #f8f9fa;
+            border-radius: 6px;
             padding: 15px;
-            margin: 15px 0;
-            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
         }
         .order-details {
             margin-top: 20px;
         }
         .product {
-            padding: 10px;
+            padding: 15px;
             border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+        }
+        .product-name {
+            font-weight: bold;
+            color: #0078d7;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        .product-meta {
+            color: #555;
+            font-size: 14px;
         }
         .status {
             display: inline-block;
-            padding: 5px 10px;
-            border-radius: 3px;
+            padding: 6px 12px;
+            border-radius: 20px;
             font-weight: bold;
+            font-size: 14px;
         }
         .status-shipped {
             background-color: #d4edda;
@@ -67,67 +96,138 @@
             color: #856404;
         }
         .status-delivered {
-            background-color: #cce5ff;
+            background-color: #d1e7ff;
             color: #004085;
         }
         .status-cancelled {
             background-color: #f8d7da;
             color: #721c24;
         }
+        .total-row {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px;
+            background-color: #f8f9fa;
+            margin-top: 10px;
+            border-radius: 6px;
+        }
+        .next-steps {
+            margin: 25px 0;
+            background-color: #f0f9ff;
+            padding: 15px;
+            border-radius: 6px;
+        }
+        .next-steps h3 {
+            color: #0078d7;
+            margin-top: 0;
+        }
         .footer {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #777;
+            margin-top: 10px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #666;
+            font-size: 13px;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #eee;
+            margin: 20px 0;
+        }
+        .contact-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
+        }
+        .text-center {
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Sipariş Durumu Güncellendi</h1>
+            <h1 class="header-logo">Sipariş Durumu Güncellendi</h1>
         </div>
         <div class="content">
             <h2>Merhaba {{name}},</h2>
             
-            <p>#{{orderId}} numaralı siparişinizin durumu güncellendi.</p>
+            <div class="update-alert">
+                #{{orderId}} numaralı siparişinizin durumu güncellendi: <span class="status status-{{statusClass}}">{{statusText}}</span>
+            </div>
             
             <div class="order-info">
-                <h3>Sipariş Bilgileri:</h3>
-                <p><strong>Sipariş No:</strong> #{{orderId}}</p>
+                <h3>Sipariş Bilgileri</h3>
+                <p><strong>Sipariş Numarası:</strong> #{{orderId}}</p>
                 <p><strong>Sipariş Tarihi:</strong> {{orderDate}}</p>
-                <p><strong>Yeni Durum:</strong> 
-                    <span class="status status-{{statusClass}}">{{statusText}}</span>
-                </p>
+                <p><strong>Güncelleme Tarihi:</strong> {{updateDate}}</p>
+                
                 {{#if trackingNumber}}
-                <p><strong>Takip Numarası:</strong> {{trackingNumber}}</p>
+                <p><strong>Kargo Takip Numarası:</strong> {{trackingNumber}}</p>
                 {{/if}}
+                
                 {{#if estimatedDelivery}}
-                <p><strong>Tahmini Teslimat:</strong> {{estimatedDelivery}}</p>
+                <p><strong>Tahmini Teslimat Tarihi:</strong> {{estimatedDelivery}}</p>
+                {{/if}}
+                
+                {{#if statusMessage}}
+                <p><strong>Durum Bilgisi:</strong> {{statusMessage}}</p>
                 {{/if}}
             </div>
-            
-            {{#if statusMessage}}
-            <p>{{statusMessage}}</p>
-            {{/if}}
             
             <div class="order-details">
-                <h3>Sipariş Detayları:</h3>
+                <h3>Sipariş Detayları</h3>
                 {{#each products}}
                 <div class="product">
-                    <p><strong>{{name}}</strong></p>
-                    <p>Miktar: {{quantity}} {{unit}} | Fiyat: {{price}} ₺</p>
+                    <div class="product-name">{{name}}</div>
+                    <div class="product-meta">
+                        <strong>Miktar:</strong> {{quantity}} {{unit}} &nbsp;|&nbsp; 
+                        <strong>Birim Fiyat:</strong> {{price}} ₺
+                    </div>
                 </div>
                 {{/each}}
-                <p><strong>Toplam Tutar:</strong> {{totalAmount}} ₺</p>
+                
+                <div class="total-row">
+                    <strong>Toplam Tutar:</strong> {{totalAmount}} ₺
+                </div>
             </div>
             
-            <a href="{{orderDetailsUrl}}" class="button">Siparişimi Görüntüle</a>
+            {{#if statusClass}}
+            <div class="next-steps">
+                <h3>Bir Sonraki Adımlar</h3>
+                {{#if (eq statusClass "processing")}}
+                <p>Siparişiniz şu anda işleme alınmıştır ve hazırlanmaktadır. Siparişiniz kargoya verildiğinde sizi bilgilendireceğiz.</p>
+                {{/if}}
+                
+                {{#if (eq statusClass "shipped")}}
+                <p>Siparişiniz kargoya verildi! Yukarıdaki takip numarası ile gönderinizi takip edebilirsiniz. Ürünleriniz yolda, lütfen teslimat adresinizde birinin bulunduğundan emin olun.</p>
+                {{/if}}
+                
+                {{#if (eq statusClass "delivered")}}
+                <p>Siparişiniz teslim edildi! Ürünlerinizle ilgili herhangi bir sorun yaşarsanız, lütfen bizimle iletişime geçin.</p>
+                {{/if}}
+                
+                {{#if (eq statusClass "cancelled")}}
+                <p>Siparişiniz iptal edildi. Daha fazla bilgi için lütfen müşteri hizmetleri ile iletişime geçin.</p>
+                {{/if}}
+            </div>
+            {{/if}}
             
-            <p>Herhangi bir sorunuz varsa, lütfen bizimle iletişime geçmekten çekinmeyin.</p>
-            <p>Saygılarımızla,<br/>B2B Sistemi Ekibi</p>
+            <div class="text-center">
+                <a href="{{orderDetailsUrl}}" class="button">Siparişimi Görüntüle</a>
+            </div>
+            
+            <hr>
+            
+            <p>Herhangi bir sorunuz veya yardıma ihtiyacınız olursa, lütfen müşteri hizmetleri ekibimizle iletişime geçmekten çekinmeyin.</p>
+            
+            <div class="contact-info">
+                <p><strong>Müşteri Hizmetleri:</strong> info@curkuslar.com.tr</p>
+                <p><strong>Telefon:</strong> +90 (555) 123 4567</p>
+            </div>
+            
+            <p>Saygılarımızla,<br/><strong>B2B Sistemi Ekibi</strong></p>
         </div>
         <div class="footer">
             <p>&copy; 2025 B2B Sistemi. Tüm hakları saklıdır.</p>
