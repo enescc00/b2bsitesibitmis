@@ -48,7 +48,7 @@ const ResetPasswordPage = () => {
       setMessage('');
       
       // API çağrısı yaparken tam URL kullanılıyor (API_BASE_URL'den yararlanarak)
-      const response = await fetch(`${API_BASE_URL}/users/auth/reset-password/${token}`, {
+      const response = await fetch(`${API_BASE_URL}/api/users/auth/reset-password/${token}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
