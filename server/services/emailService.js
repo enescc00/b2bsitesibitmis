@@ -161,13 +161,13 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
       statusMessage: statusInfo.message,
       trackingNumber: order.trackingNumber,
       estimatedDelivery: order.estimatedDelivery,
-      products: order.products.map(item => ({
-        name: item.productName || item.product.name,
-        quantity: item.quantity,
+      products: (order.orderItems || order.products || []).map(item => ({
+        name: item.name || item.productName || item.product?.name || 'Ürün',
+        quantity: item.qty || item.quantity || 1,
         unit: item.unit || 'Adet',
-        price: item.price.toFixed(2)
+        price: (item.price || 0).toFixed(2)
       })),
-      totalAmount: order.totalAmount.toFixed(2),
+      totalAmount: ((order.totalAmount ?? order.totalPrice) || 0).toFixed(2),
       orderDetailsUrl: `${clientBaseUrl}/account/orders/${order._id}`
     };
     
