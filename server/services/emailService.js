@@ -154,36 +154,18 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
     // Güncelleme tarihini oluştur
     const updateDate = new Date().toLocaleDateString('tr-TR');
     
-    // Tahmini teslimat tarihini hesapla (status shipped ise)
-    let estimatedDelivery = "";
-    if (newStatus === 'shipped') {
-      const deliveryDate = new Date();
-      deliveryDate.setDate(deliveryDate.getDate() + 2); // 2 gün sonrası
-      
-      // Cumartesi veya Pazar ise Pazartesi'ye ayarla
-      const dayOfWeek = deliveryDate.getDay(); // 0=Pazar, 6=Cumartesi
-      if (dayOfWeek === 0) { // Pazar
-        deliveryDate.setDate(deliveryDate.getDate() + 1); // Pazartesi'ye ayarla
-      } else if (dayOfWeek === 6) { // Cumartesi
-        deliveryDate.setDate(deliveryDate.getDate() + 2); // Pazartesi'ye ayarla
-      }
-      
-      estimatedDelivery = deliveryDate.toLocaleDateString('tr-TR');
-    }
-    
-    // Sipariş numarasını formatla (ID'nin son 4 karakterini al ve sıfır ekleyerek 4 hane yap)
-    const shortOrderId = order.orderNumber || (order._id ? String(order._id).slice(-4).padStart(4, '0') : '0001');
-    
-    // Şablon verilerini hazırla
+    // Sipariş numarasını formatla (önce orderNumber, sonra _id son 4 hane, sonra 0001)
+    const orderId = String(order.orderNumber || (order._id ? String(order._id).slice(-4) : '1')).padStart(4, '0');
+
+    // Şablon için temel verileri hazırla
     const templateData = {
       name: user.name || user.firstName || 'Değerli Müşterimiz',
-      orderId: shortOrderId,
+      orderId: orderId,
       orderDate: new Date(order.createdAt).toLocaleDateString('tr-TR'),
       updateDate: updateDate,
       statusText: statusInfo.text,
       statusClass: statusInfo.class,
       statusMessage: statusInfo.message,
-      estimatedDelivery: estimatedDelivery || order.estimatedDelivery,
       products: (order.orderItems || order.products || []).map(item => ({
         name: item.name || item.productName || item.product?.name || 'Ürün',
         quantity: item.qty || item.quantity || 1,
@@ -193,11 +175,28 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
       totalAmount: ((order.totalAmount ?? order.totalPrice) || 0).toFixed(2),
       orderDetailsUrl: `${clientBaseUrl}/account/orders/${order._id}`
     };
-    
+
+    // Sadece durum 'shipped' ise ek bilgileri ekle
+    if (newStatus === 'shipped') {
+      const deliveryDate = new Date();
+      deliveryDate.setDate(deliveryDate.getDate() + 2); // 2 gün sonrası
+
+      const dayOfWeek = deliveryDate.getDay(); // 0=Pazar, 6=Cumartesi
+      if (dayOfWeek === 0) { // Pazar
+        deliveryDate.setDate(deliveryDate.getDate() + 1);
+      } else if (dayOfWeek === 6) { // Cumartesi
+        deliveryDate.setDate(deliveryDate.getDate() + 2);
+      }
+
+      templateData.estimatedDelivery = deliveryDate.toLocaleDateString('tr-TR');
+      templateData.packageCount = order.packageCount; // Koli sayısını siparişten al
+      templateData.isShipped = true; // Şablonun kullanması için flag
+    }
+
     // E-posta gönderme işlemi
     const result = await emailConfig.sendEmail({
       to: user.email,
-      subject: `Sipariş Durumu: ${statusInfo.text} - #${order._id}`,
+      subject: `Sipariş Durumu: ${statusInfo.text} - #${templateData.orderId}`,
       template: 'order-update',
       context: templateData
     });
