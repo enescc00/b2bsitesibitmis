@@ -4,12 +4,24 @@ const fs = require('fs');
 
 // E-posta göndermek için transport oluştur
 const createTransporter = () => {
-  // Gmail veya diğer servis için yapılandırma
+  // Gmail için güvenli SMTP ayarı (Uygulama Şifresi ile)
+  if ((process.env.EMAIL_SERVICE || 'gmail') === 'gmail') {
+    return nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // SSL
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASSWORD,
+      },
+    });
+  }
+  // Diğer servisler için genel ayar
   return nodemailer.createTransport({
-    service: process.env.EMAIL_SERVICE || 'gmail', 
+    service: process.env.EMAIL_SERVICE,
     auth: {
-      user: process.env.EMAIL_USER || 'ornek@gmail.com',
-      pass: process.env.EMAIL_PASSWORD || 'sifre123',
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASSWORD,
     },
   });
 };
@@ -17,7 +29,7 @@ const createTransporter = () => {
 // Şablon dosyasını oku ve değişkenleri yerleştir
 const renderTemplate = (templateName, context) => {
   try {
-    const templatePath = path.resolve(`./views/emails/${templateName}.hbs`);
+    const templatePath = path.resolve(__dirname, '../views/emails', `${templateName}.hbs`);
     let template = fs.readFileSync(templatePath, 'utf-8');
     
     // Basit değişken değiştirme işlemi
