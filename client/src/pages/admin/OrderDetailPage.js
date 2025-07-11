@@ -152,7 +152,7 @@ function OrderDetailPage() {
   };
 
 
-  if (loading) return <div className="loading-container">Sipariş Detayları Yükleniyor...</div>;
+        if (loading) return <div className="loading-container">Sipariş Detayları Yükleniyor...</div>;
   if (error) return <div className="error-container">Hata: {error}</div>;
   if (!order) return <div>Sipariş bulunamadı.</div>;
 
@@ -161,7 +161,7 @@ function OrderDetailPage() {
       <button onClick={() => navigate('/admin/orders')} className="back-btn">&larr; Tüm Siparişlere Dön</button>
 
       <div className="page-header">
-        <h1>Sipariş Düzenle (#{order._id.substring(0, 8)})</h1>
+                <h1>Sipariş Düzenle (#{String(order.orderNumber).padStart(4, '0')})</h1>
         <button onClick={handlePrint} className="print-btn">Yazdır</button>
       </div>
 
@@ -170,7 +170,7 @@ function OrderDetailPage() {
           <img src="/logo-print.png" alt="Curkuslar C.M.S Logo" className="print-logo" />
         </div>
         <div className="print-header-right">
-          <p><strong>Sipariş No:</strong> #{order._id.substring(0,8)}</p>
+                    <p><strong>Sipariş No:</strong> #{String(order.orderNumber).padStart(4, '0')}</p>
           <p><strong>Tarih:</strong> {new Date(order.createdAt).toLocaleString('tr-TR')}</p>
         </div>
       </div>

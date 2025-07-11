@@ -117,7 +117,7 @@ function MyOrdersPage() {
                 <div className="order-header">
                   <div className="order-info">
                     <span>SİPARİŞ TARİHİ: {new Date(order.createdAt).toLocaleDateString('tr-TR')}</span>
-                    <span>SİPARİŞ NO: {order._id}</span>
+                                        <span>SİPARİŞ NO: #{String(order.orderNumber).padStart(4, '0')}</span>
                   </div>
                   <div className={`order-status ${statusDetails.className}`}>
                     <i className={statusDetails.icon}></i>
