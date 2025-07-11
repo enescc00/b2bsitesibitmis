@@ -14,6 +14,11 @@ const OrderItemSchema = new Schema({
 
 
 const OrderSchema = new Schema({
+  orderNumber: {
+    type: Number,
+    unique: true,
+    index: true
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     required: true,
@@ -60,6 +65,19 @@ const OrderSchema = new Schema({
   }
 }, {
   timestamps: true
+});
+
+// Sipariş oluşturulurken sıralı orderNumber ata
+OrderSchema.pre('save', async function(next) {
+  if (this.orderNumber) return next();
+
+  try {
+    const lastOrder = await mongoose.model('Order').findOne({ orderNumber: { $ne: null } }).sort({ orderNumber: -1 }).select('orderNumber');
+    this.orderNumber = lastOrder ? lastOrder.orderNumber + 1 : 1;
+    next();
+  } catch (err) {
+    next(err);
+  }
 });
 
 module.exports = mongoose.model('Order', OrderSchema);

@@ -163,10 +163,7 @@
                 <p><strong>Sipariş Tarihi:</strong> {{orderDate}}</p>
                 <p><strong>Güncelleme Tarihi:</strong> {{updateDate}}</p>
                 
-                {{#if isShipped}}
-                <p><strong>Tahmini Teslimat Tarihi:</strong> {{estimatedDelivery}}</p>
-                <p><strong>Koli Sayısı:</strong> {{packageCount}}</p>
-                {{/if}}
+                                {{{shippingInfo}}}
 
                 <p><strong>Durum Bilgisi:</strong> {{statusMessage}}</p>
             </div>
