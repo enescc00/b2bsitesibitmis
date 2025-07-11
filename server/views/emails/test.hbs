@@ -6,48 +6,103 @@
     <title>Test E-posta</title>
     <style>
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         .header {
             background-color: #0078d7;
-            color: white;
-            padding: 10px 20px;
+            padding: 20px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
+        }
+        .header-logo {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
         }
         .content {
-            padding: 20px;
+            padding: 30px;
+        }
+        .test-info {
+            background-color: #e8f4fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #0078d7;
+        }
+        .test-date {
+            font-size: 16px;
+            color: #0078d7;
+            font-weight: bold;
+        }
+        .success-message {
+            background-color: #e6f7e6;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #28a745;
         }
         .footer {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #777;
+            margin-top: 10px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #666;
+            font-size: 13px;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #eee;
+            margin: 20px 0;
+        }
+        .contact-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>B2B Sistemi</h1>
+            <h1 class="header-logo">B2B Sistemi</h1>
         </div>
         <div class="content">
-            <h2>Merhaba {{name}},</h2>
-            <p>{{message}}</p>
-            <p>Bu e-posta, e-posta bildirim sistemimizin test edilmesi amacıyla gönderilmiştir.</p>
+            <h2>Merhaba,</h2>
+            <p>Bu e-posta <strong>B2B Sistemi</strong> e-posta bildirim sisteminin düzgün çalıştığını doğrulamak için gönderilmiştir.</p>
+            
+            <div class="test-info">
+                <h3>Test Bilgileri</h3>
+                <p><strong>Test zamanı:</strong> <span class="test-date">{{date}}</span></p>
+                <p><strong>Test türü:</strong> E-posta gönderim doğrulama</p>
+            </div>
+            
+            <div class="success-message">
+                <p>✅ E-posta gönderim sistemimiz başarıyla çalışıyor!</p>
+                <p>Bu e-postayı alıyorsanız, sistemimiz doğru şekilde yapılandırılmış ve e-postaları başarıyla iletebiliyor demektir.</p>
+            </div>
+            
+            <hr>
+            
+            <p>B2B Sistemimizin tüm özellikleri hakkında daha fazla bilgi için web sitemizi ziyaret edebilirsiniz.</p>
+            
+            <div class="contact-info">
+                <p><strong>Teknik destek:</strong> destek@curkuslar.com.tr</p>
+                <p><strong>Telefon:</strong> +90 (555) 123 4567</p>
+            </div>
         </div>
         <div class="footer">
             <p>&copy; 2025 B2B Sistemi. Tüm hakları saklıdır.</p>

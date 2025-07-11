@@ -6,66 +6,139 @@
     <title>B2B Sistemine Hoş Geldiniz</title>
     <style>
         body {
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
             color: #333;
             margin: 0;
-            padding: 20px;
+            padding: 0;
+            background-color: #f9f9f9;
         }
         .container {
             max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         }
         .header {
             background-color: #0078d7;
-            color: white;
-            padding: 10px 20px;
+            padding: 20px;
             text-align: center;
-            border-radius: 5px 5px 0 0;
+        }
+        .header-logo {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            margin: 0;
         }
         .content {
-            padding: 20px;
+            padding: 30px;
+        }
+        .welcome-message {
+            background-color: #e8f4fd;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 4px solid #0078d7;
+        }
+        .account-info {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px solid #dee2e6;
         }
         .button {
             display: inline-block;
-            padding: 10px 20px;
+            padding: 12px 24px;
             margin: 20px 0;
             background-color: #0078d7;
             color: white;
             text-decoration: none;
-            border-radius: 5px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .features-list {
+            margin: 25px 0;
+        }
+        .features-list h3 {
+            color: #0078d7;
+            margin-bottom: 10px;
+        }
+        .features-list ul {
+            padding-left: 20px;
+        }
+        .features-list li {
+            margin-bottom: 8px;
         }
         .footer {
             text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ddd;
-            font-size: 12px;
-            color: #777;
+            margin-top: 10px;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #666;
+            font-size: 13px;
+        }
+        hr {
+            border: 0;
+            height: 1px;
+            background-color: #eee;
+            margin: 20px 0;
+        }
+        .contact-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #555;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>B2B Sistemine Hoş Geldiniz!</h1>
+            <h1 class="header-logo">B2B Sistemine Hoş Geldiniz!</h1>
         </div>
         <div class="content">
             <h2>Merhaba {{name}},</h2>
-            <p>B2B Sistemimize kayıt olduğunuz için teşekkür ederiz.</p>
-            <p>Hesabınız başarıyla oluşturuldu ve şimdi sistemimizi kullanmaya başlayabilirsiniz. Aşağıdaki bilgilerle giriş yapabilirsiniz:</p>
             
-            <p><strong>E-posta:</strong> {{email}}</p>
+            <div class="welcome-message">
+                <p><strong>B2B Sistemimize hoş geldiniz!</strong> Kayıt olduğunuz için teşekkür ederiz. Sizinle çalışmayı dört gözle bekliyoruz.</p>
+            </div>
             
-            <p>Sistem üzerinden ürünlerimizi inceleyebilir, sipariş verebilir ve fiyat teklifleri alabilirsiniz.</p>
+            <p>Hesabınız başarıyla oluşturuldu ve artık platformumuzun tüm özelliklerine erişime sahipsiniz.</p>
             
-            <a href="{{loginUrl}}" class="button">Giriş Yap</a>
+            <div class="account-info">
+                <h3>Hesap Bilgileriniz</h3>
+                <p><strong>E-posta:</strong> {{email}}</p>
+                <p>Giriş yapmak için aşağıdaki butonu kullanabilir veya doğrudan web sitemizi ziyaret edebilirsiniz.</p>
+            </div>
             
-            <p>Herhangi bir sorunuz varsa, lütfen bizimle iletişime geçmekten çekinmeyin.</p>
-            <p>Saygılarımızla,<br/>B2B Sistemi Ekibi</p>
+            <div style="text-align: center;">
+                <a href="{{loginUrl}}" class="button">Hesabıma Giriş Yap</a>
+            </div>
+            
+            <div class="features-list">
+                <h3>B2B Sistemimizle Neler Yapabilirsiniz?</h3>
+                <ul>
+                    <li>Geniş ürün kataloğumuzu inceleyin ve detaylı ürün bilgilerine erişin</li>
+                    <li>Hızlı ve güvenli bir şekilde sipariş verin</li>
+                    <li>Kişiye özel fiyatlandırma ve teklifler alın</li>
+                    <li>Sipariş durumunuzu takip edin ve geçmiş siparişlerinizi görüntüleyin</li>
+                    <li>Özel indirimler ve kampanyalardan ilk siz haberdar olun</li>
+                </ul>
+            </div>
+            
+            <hr>
+            
+            <p>Herhangi bir sorunuz veya yardıma ihtiyacınız olursa, lütfen müşteri hizmetleri ekibimizle iletişime geçmekten çekinmeyin.</p>
+            
+            <div class="contact-info">
+                <p><strong>Müşteri Hizmetleri:</strong> info@curkuslar.com.tr</p>
+                <p><strong>Telefon:</strong> +90 (555) 123 4567</p>
+            </div>
+            
+            <p>Saygılarımızla,<br/><strong>B2B Sistemi Ekibi</strong></p>
         </div>
         <div class="footer">
             <p>&copy; 2025 B2B Sistemi. Tüm hakları saklıdır.</p>
