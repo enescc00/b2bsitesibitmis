@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../context/CartContext';
 import { WishlistContext } from '../context/WishlistContext';
@@ -12,6 +12,9 @@ function ProductCard({ product, onAddToCart }) {
   const globalCart = useContext(CartContext);
   const { user } = useContext(AuthContext);
   const { addToWishlist, removeFromWishlist, isFavorited } = useContext(WishlistContext);
+
+  // Resim indeksini takip etmek için state ekledik
+  const [imageIndex, setImageIndex] = useState(0);
 
   const isProductFavorited = user ? isFavorited(product._id) : false;
 
@@ -45,7 +48,19 @@ function ProductCard({ product, onAddToCart }) {
                 </button>
             )}
             <div className="product-image-container">
-                <img className="product-card-image" src={product.images && product.images.length > 0 ? assetUrl(product.images[0]) : 'https://via.placeholder.com/300?text=Görsel+Yok'} alt={product.name}/>
+                <img 
+                  className="product-card-image" 
+                  src={product.images && product.images.length > imageIndex 
+                    ? assetUrl(product.images[imageIndex]) 
+                    : 'https://via.placeholder.com/300?text=Görsel+Yok'} 
+                  alt={product.name}
+                  onError={() => {
+                    // Resim yüklenemezse bir sonraki resmi dene
+                    if (product.images && imageIndex < product.images.length - 1) {
+                      setImageIndex(imageIndex + 1);
+                    }
+                  }}
+                />
             </div>
             <div className="product-info">
                 <p className="product-category">{product.category ? product.category.name : 'Kategorisiz'}</p>
