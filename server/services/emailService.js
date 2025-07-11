@@ -114,50 +114,23 @@ const sendPasswordResetEmail = async (user, tokenModel) => {
  */
 const sendOrderStatusEmail = async (user, order, newStatus) => {
   try {
-    console.log('Sipariş durumu e-postası gönderiliyor:', user.email);
-    
-    // Durum değişikliğine göre uygun mesaj ve sınıfı belirle
-    const statusMap = {
-      'processing': {
-        text: 'İşleme Alındı',
-        class: 'processing',
-        message: 'Siparişiniz işleme alındı ve hazırlanıyor.'
-      },
-      'shipped': {
-        text: 'Kargoya Verildi',
-        class: 'shipped',
-        message: 'Siparişiniz kargoya verildi! Takip numarasını kullanarak kargonuzu takip edebilirsiniz.'
-      },
-      'delivered': {
-        text: 'Teslim Edildi',
-        class: 'delivered',
-        message: 'Siparişiniz teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.'
-      },
-      'cancelled': {
-        text: 'İptal Edildi',
-        class: 'cancelled',
-        message: 'Siparişiniz iptal edildi. Detaylı bilgi için müşteri hizmetlerimizle iletişime geçebilirsiniz.'
-      }
-    };
-    
-    const statusInfo = statusMap[newStatus] || {
-      text: 'Güncellendi',
-      class: 'default',
-      message: 'Siparişinizin durumu güncellendi.'
-    };
-    
-    const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
-    
-    // emailConfig'i sadece burada require et (circular dependency'den kaçınmak için)
-    const emailConfig = require('../config/emailConfig');
-    
-    // Güncelleme tarihini oluştur
-    const updateDate = new Date().toLocaleDateString('tr-TR');
-    
-    // Sipariş numarasını formatla (önce orderNumber, sonra _id son 4 hane, sonra 0001)
-    const orderId = String(order.orderNumber || (order._id ? String(order._id).slice(-4) : '1')).padStart(4, '0');
+    console.log(`Sipariş durumu e-postası gönderiliyor: ${user.email}, Durum: ${newStatus}`);
 
-    // Şablon için temel verileri hazırla
+    const statusMap = {
+      'Onay Bekliyor': { text: 'Onay Bekliyor', class: 'default', message: 'Siparişiniz onay bekliyor.' },
+      'Hazırlanıyor': { text: 'Hazırlanıyor', class: 'processing', message: 'Siparişiniz hazırlanıyor.' },
+      'Kargoya Verildi': { text: 'Kargoya Verildi', class: 'shipped', message: 'Siparişiniz kargoya verildi.' },
+      'Teslim Edildi': { text: 'Teslim Edildi', class: 'delivered', message: 'Siparişiniz teslim edildi. Bizi tercih ettiğiniz için teşekkür ederiz.' },
+      'İptal Edildi': { text: 'İptal Edildi', class: 'cancelled', message: 'Siparişiniz iptal edildi.' }
+    };
+
+    const statusInfo = statusMap[newStatus] || { text: 'Güncellendi', class: 'default', message: 'Siparişinizin durumu güncellendi.' };
+
+    const clientBaseUrl = process.env.CLIENT_URL || 'https://curkuslar.online';
+    const emailConfig = require('../config/emailConfig');
+    const updateDate = new Date().toLocaleDateString('tr-TR');
+    const orderId = String(order.orderNumber).padStart(4, '0');
+
     const templateData = {
       name: user.name || user.firstName || 'Değerli Müşterimiz',
       orderId: orderId,
@@ -166,41 +139,38 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
       statusText: statusInfo.text,
       statusClass: statusInfo.class,
       statusMessage: statusInfo.message,
-      products: (order.orderItems || order.products || []).map(item => ({
-        name: item.name || item.productName || item.product?.name || 'Ürün',
-        quantity: item.qty || item.quantity || 1,
+      products: (order.orderItems || []).map(item => ({
+        name: item.name,
+        quantity: item.qty,
         unit: item.unit || 'Adet',
         price: (item.price || 0).toFixed(2)
       })),
-      totalAmount: ((order.totalAmount ?? order.totalPrice) || 0).toFixed(2),
-      orderDetailsUrl: `${clientBaseUrl}/account/orders/${order._id}`
+      totalAmount: (order.totalPrice || 0).toFixed(2),
+      orderDetailsUrl: `${clientBaseUrl}/account/orders/${order._id}`,
+      shippingInfo: '' // Başlangıçta boş bırak
     };
 
-    // Sadece durum 'shipped' ise ek bilgileri ekle
-    if (newStatus === 'shipped') {
+    if (newStatus === 'Kargoya Verildi') {
       const deliveryDate = new Date();
-      deliveryDate.setDate(deliveryDate.getDate() + 2); // 2 gün sonrası
+      deliveryDate.setDate(deliveryDate.getDate() + 2);
+      const dayOfWeek = deliveryDate.getDay();
+      if (dayOfWeek === 0) deliveryDate.setDate(deliveryDate.getDate() + 1); // Pazar ise Pazartesi
+      else if (dayOfWeek === 6) deliveryDate.setDate(deliveryDate.getDate() + 2); // Cumartesi ise Pazartesi
 
-      const dayOfWeek = deliveryDate.getDay(); // 0=Pazar, 6=Cumartesi
-      if (dayOfWeek === 0) { // Pazar
-        deliveryDate.setDate(deliveryDate.getDate() + 1);
-      } else if (dayOfWeek === 6) { // Cumartesi
-        deliveryDate.setDate(deliveryDate.getDate() + 2);
-      }
-
-      templateData.estimatedDelivery = deliveryDate.toLocaleDateString('tr-TR');
-      templateData.packageCount = order.packageCount; // Koli sayısını siparişten al
-      templateData.isShipped = true; // Şablonun kullanması için flag
+      const estimatedDelivery = deliveryDate.toLocaleDateString('tr-TR');
+      const packagesCount = order.packagesCount || 1;
+      templateData.shippingInfo = 
+        `<p style="font-size: 14px; color: #555; margin: 5px 0;"><strong>Tahmini Teslimat Tarihi:</strong> ${estimatedDelivery}</p>` +
+        `<p style="font-size: 14px; color: #555; margin: 5px 0;"><strong>Koli Sayısı:</strong> ${packagesCount}</p>`;
     }
 
-    // E-posta gönderme işlemi
     const result = await emailConfig.sendEmail({
       to: user.email,
-      subject: `Sipariş Durumu: ${statusInfo.text} - #${templateData.orderId}`,
+      subject: `Siparişiniz ${statusInfo.text} - No: #${orderId}`,
       template: 'order-update',
       context: templateData
     });
-    
+
     console.log('Sipariş durumu e-postası gönderme sonucu:', result);
     return result;
   } catch (error) {
