@@ -27,6 +27,11 @@ const quoteItemSchema = new mongoose.Schema({
 
 const quoteSchema = new mongoose.Schema(
   {
+    quoteNumber: {
+      type: Number,
+      unique: true,
+      index: true
+    },
     requester: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -56,5 +61,19 @@ const quoteSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+quoteSchema.pre('save', async function(next) {
+  if (this.isNew && !this.quoteNumber) {
+    try {
+      const lastQuote = await this.constructor.findOne({ quoteNumber: { $ne: null } }).sort({ quoteNumber: -1 });
+      this.quoteNumber = lastQuote ? lastQuote.quoteNumber + 1 : 1;
+      next();
+    } catch (err) {
+      next(err);
+    }
+  } else {
+    next();
+  }
+});
 
 module.exports = mongoose.model('Quote', quoteSchema);
