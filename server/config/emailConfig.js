@@ -4,18 +4,36 @@ const fs = require('fs');
 
 // E-posta göndermek için transport oluştur
 const createTransporter = () => {
+  // Önce ortam değişkenlerini kontrol et ve logla
+  console.log(`E-posta ayarları: SERVICE=${process.env.EMAIL_SERVICE}, USER=${process.env.EMAIL_USER ? '***' : 'TANİMSIZ'}`);
+  
+  // Gerekli bilgilerin varlığını kontrol et
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASSWORD) {
+    console.error('HATA: E-posta kullanıcı adı veya şifre tanımlanmamış!');
+    // Boş bir transporter yerine bir hata fırlat ki program hatası açıkça belirlenebilsin
+    throw new Error('EMAIL_USER ve EMAIL_PASSWORD ortam değişkenleri tanımlanmalıdır.');
+  }
+  
   // Gmail için güvenli SMTP ayarı (Uygulama Şifresi ile)
-  if ((process.env.EMAIL_SERVICE || 'gmail') === 'gmail') {
+  if ((process.env.EMAIL_SERVICE || 'gmail').toLowerCase() === 'gmail') {
+    console.log('Gmail SMTP yapılandırması kullanılıyor...');
+    console.log(`E-posta kullanıcısı: ${process.env.EMAIL_USER}`);
+    
+    // Gmail için açık host ve port belirtme
     return nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // SSL
+      port: 587,
+      secure: false, // TLS - daha güvenilir bağlantı için
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        pass: process.env.EMAIL_PASSWORD
       },
+      tls: {
+        rejectUnauthorized: false // Sertifika hatalı olsa bile bağlantı kurulmasını sağlar
+      }
     });
   }
+  
   // Diğer servisler için genel ayar
   return nodemailer.createTransport({
     service: process.env.EMAIL_SERVICE,
@@ -71,73 +89,91 @@ const testEmailConnection = async () => {
 };
 
 // Belirli bir e-posta adresine test e-postası gönder
-const sendTestEmail = async (email) => {
+const sendTestEmail = async (to) => {
+  console.log(`Test e-postası gönderme isteği: ${to}`);
+  
   try {
-    const transporter = createTransporter();
-    const currentDate = new Date().toLocaleString('tr-TR');
-    const currentYear = new Date().getFullYear();
-    
+    // Önce HTML mesajı doğrudan oluştur
+    const date = new Date().toLocaleString('tr-TR');
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e1e1e1; border-radius: 5px;">
-        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; border-radius: 5px 5px 0 0;">
-          <h1 style="color: #1a73e8;">B2B Sistemi</h1>
-        </div>
-        <div style="padding: 20px;">
-          <p>Merhaba,</p>
-          <p>Bu bir <strong>test e-postasıdır</strong>. E-posta sisteminin düzgün çalıştığını doğrulamak için gönderilmiştir.</p>
-          <p>Test zamanı: ${currentDate}</p>
-          <p>Bu e-postayı alıyorsanız, B2B sisteminin e-posta gönderme özelliği başarıyla çalışıyor demektir.</p>
-        </div>
-        <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 5px 5px;">
-          <p>&copy; ${currentYear} B2B Sistemi - Tüm hakları saklıdır.</p>
-        </div>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd;">
+        <h2>E-posta Sistemi Test</h2>
+        <p>Bu bir test e-postasıdır. E-posta sisteminin doğru çalıştığını doğrulamak için gönderilmiştir.</p>
+        <p>Gönderim tarihi ve saati: <strong>${date}</strong></p>
       </div>
     `;
     
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"B2B Sistemi" <' + process.env.EMAIL_USER + '>',
-      to: email,
-      subject: 'B2B Sistemi E-posta Testi',
-      html: html
+    // Önce şablon kullanmadan deneme
+    const plainResult = await sendEmail({
+      from: process.env.EMAIL_FROM,
+      to,
+      subject: 'Test E-postası (Doğrudan HTML)',
+      html
     });
-
-    console.log('Test e-postası gönderildi: %s - Adres: %s', info.messageId, email);
-    return { success: true, messageId: info.messageId };
+    
+    if (plainResult.success) {
+      console.log('Doğrudan HTML ile test e-postası gönderildi');
+      return plainResult;
+    }
+    
+    // Eğer başarısız olduysa şablon ile dene
+    console.log('Doğrudan HTML ile gönderilemedi, şablon ile deneniyor...');
+    
+    const templateResult = await sendEmail({
+      from: process.env.EMAIL_FROM,
+      to,
+      subject: 'Test E-postası (Şablon)',
+      template: 'test',
+      context: {
+        date: date
+      }
+    });
+    
+    return templateResult;
   } catch (error) {
-    console.error('Test e-postası gönderimi başarısız:', error);
+    console.error('Test e-postası gönderilirken beklenmeyen hata:', error);
     return { success: false, error: error.message };
   }
 };
 
 // Genel amaçlı e-posta gönderme fonksiyonu
-const sendEmail = async (options) => {
+const sendEmail = async (mailOptions) => {
   try {
-    const { to, subject, template, context } = options;
+    console.log('E-posta gönderme işlemi başladı:', { 
+      to: mailOptions.to, 
+      subject: mailOptions.subject,
+      template: mailOptions.template 
+    });
+    
+    // Transporter oluşturma
     const transporter = createTransporter();
     
-    // Şablonu işle
-    let htmlContent;
-    if (template && context) {
-      htmlContent = renderTemplate(template, context);
-    } else if (options.html) {
-      htmlContent = options.html;
-    } else {
-      htmlContent = "<p>E-posta içeriği bulunamadı.</p>";
-    }
+    // From alanını ayarla
+    mailOptions.from = mailOptions.from || process.env.EMAIL_FROM;
+    console.log(`Gönderici adresi: ${mailOptions.from}`);
     
-    // E-posta gönderimi
-    const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || '"B2B Sistemi" <ornek@gmail.com>',
-      to,
-      subject,
-      html: htmlContent,
+    // E-postayı gönder
+    const info = await transporter.sendMail(mailOptions);
+    
+    // Başarı bilgisini logla
+    console.log('E-posta başarıyla gönderildi:', {
+      messageId: info.messageId,
+      response: info.response
     });
-
-    console.log('E-posta gönderildi: %s', info.messageId);
+    
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('E-posta gönderimi başarısız:', error);
-    return { success: false, error: error.message };
+    console.error('E-posta gönderimi başarısız:', {
+      errorCode: error.code,
+      errorMessage: error.message,
+      errorStack: error.stack
+    });
+    
+    return { 
+      success: false, 
+      error: error.message,
+      code: error.code || 'UNKNOWN'
+    };
   }
 };
 
