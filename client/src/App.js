@@ -186,8 +186,7 @@ const AppContent = () => {
                 <Route path="quotes" element={<QuoteListPage />} />
                 <Route path="quote/:id" element={<QuoteEditPage />} />
                 <Route path="pricelists" element={<PriceListPage />} />
-                <Route path="pricelists/new" element={<PriceListEditPage />} />
-                <Route path="pricelists/edit/:id" element={<PriceListEditPage />} />
+                <Route path="pricelists/:id" element={<PriceListEditPage />} />
             </Route>
 
             {/* Supplier Routes with SupplierLayout */}
