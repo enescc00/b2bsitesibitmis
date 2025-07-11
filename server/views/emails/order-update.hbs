@@ -163,10 +163,6 @@
                 <p><strong>Sipariş Tarihi:</strong> {{orderDate}}</p>
                 <p><strong>Güncelleme Tarihi:</strong> {{updateDate}}</p>
                 
-                {{#if trackingNumber}}
-                <p><strong>Kargo Takip Numarası:</strong> {{trackingNumber}}</p>
-                {{/if}}
-                
                 {{#if estimatedDelivery}}
                 <p><strong>Tahmini Teslimat Tarihi:</strong> {{estimatedDelivery}}</p>
                 {{/if}}
@@ -176,43 +172,9 @@
                 {{/if}}
             </div>
             
-            <div class="order-details">
-                <h3>Sipariş Detayları</h3>
-                {{#each products}}
-                <div class="product">
-                    <div class="product-name">{{name}}</div>
-                    <div class="product-meta">
-                        <strong>Miktar:</strong> {{quantity}} {{unit}} &nbsp;|&nbsp; 
-                        <strong>Birim Fiyat:</strong> {{price}} ₺
-                    </div>
-                </div>
-                {{/each}}
-                
-                <div class="total-row">
-                    <strong>Toplam Tutar:</strong> {{totalAmount}} ₺
-                </div>
+            <div class="total-row">
+                <strong>Toplam Tutar:</strong> {{totalAmount}} ₺
             </div>
-            
-            {{#if statusClass}}
-            <div class="next-steps">
-                <h3>Bir Sonraki Adımlar</h3>
-                {{#if (eq statusClass "processing")}}
-                <p>Siparişiniz şu anda işleme alınmıştır ve hazırlanmaktadır. Siparişiniz kargoya verildiğinde sizi bilgilendireceğiz.</p>
-                {{/if}}
-                
-                {{#if (eq statusClass "shipped")}}
-                <p>Siparişiniz kargoya verildi! Yukarıdaki takip numarası ile gönderinizi takip edebilirsiniz. Ürünleriniz yolda, lütfen teslimat adresinizde birinin bulunduğundan emin olun.</p>
-                {{/if}}
-                
-                {{#if (eq statusClass "delivered")}}
-                <p>Siparişiniz teslim edildi! Ürünlerinizle ilgili herhangi bir sorun yaşarsanız, lütfen bizimle iletişime geçin.</p>
-                {{/if}}
-                
-                {{#if (eq statusClass "cancelled")}}
-                <p>Siparişiniz iptal edildi. Daha fazla bilgi için lütfen müşteri hizmetleri ile iletişime geçin.</p>
-                {{/if}}
-            </div>
-            {{/if}}
             
             <div class="text-center">
                 <a href="{{orderDetailsUrl}}" class="button">Siparişimi Görüntüle</a>
@@ -223,14 +185,14 @@
             <p>Herhangi bir sorunuz veya yardıma ihtiyacınız olursa, lütfen müşteri hizmetleri ekibimizle iletişime geçmekten çekinmeyin.</p>
             
             <div class="contact-info">
-                <p><strong>Müşteri Hizmetleri:</strong> info@curkuslar.com.tr</p>
-                <p><strong>Telefon:</strong> +90 (555) 123 4567</p>
+                <p><strong>Müşteri Hizmetleri:</strong> curkuslar@curkuslar.com.tr</p>
+                <p><strong>Telefon:</strong> +90 (543) 281 04 93</p>
             </div>
             
-            <p>Saygılarımızla,<br/><strong>B2B Sistemi Ekibi</strong></p>
+            <p>Saygılarımızla,<br/><strong>Curkuşlar B2B Sistemi Ekibi</strong></p>
         </div>
         <div class="footer">
-            <p>&copy; 2025 B2B Sistemi. Tüm hakları saklıdır.</p>
+            <p>&copy; 2025 Curkuşlar Tüm hakları saklıdır.</p>
             <p>Bu e-posta otomatik olarak gönderilmiştir, lütfen yanıtlamayınız.</p>
         </div>
     </div>

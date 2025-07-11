@@ -151,16 +151,39 @@ const sendOrderStatusEmail = async (user, order, newStatus) => {
     // emailConfig'i sadece burada require et (circular dependency'den kaçınmak için)
     const emailConfig = require('../config/emailConfig');
     
+    // Güncelleme tarihini oluştur
+    const updateDate = new Date().toLocaleDateString('tr-TR');
+    
+    // Tahmini teslimat tarihini hesapla (status shipped ise)
+    let estimatedDelivery = "";
+    if (newStatus === 'shipped') {
+      const deliveryDate = new Date();
+      deliveryDate.setDate(deliveryDate.getDate() + 2); // 2 gün sonrası
+      
+      // Cumartesi veya Pazar ise Pazartesi'ye ayarla
+      const dayOfWeek = deliveryDate.getDay(); // 0=Pazar, 6=Cumartesi
+      if (dayOfWeek === 0) { // Pazar
+        deliveryDate.setDate(deliveryDate.getDate() + 1); // Pazartesi'ye ayarla
+      } else if (dayOfWeek === 6) { // Cumartesi
+        deliveryDate.setDate(deliveryDate.getDate() + 2); // Pazartesi'ye ayarla
+      }
+      
+      estimatedDelivery = deliveryDate.toLocaleDateString('tr-TR');
+    }
+    
+    // Sipariş numarasını formatla (ID'nin son 4 karakterini al ve sıfır ekleyerek 4 hane yap)
+    const shortOrderId = order.orderNumber || (order._id ? String(order._id).slice(-4).padStart(4, '0') : '0001');
+    
     // Şablon verilerini hazırla
     const templateData = {
       name: user.name || user.firstName || 'Değerli Müşterimiz',
-      orderId: order._id,
+      orderId: shortOrderId,
       orderDate: new Date(order.createdAt).toLocaleDateString('tr-TR'),
+      updateDate: updateDate,
       statusText: statusInfo.text,
       statusClass: statusInfo.class,
       statusMessage: statusInfo.message,
-      trackingNumber: order.trackingNumber,
-      estimatedDelivery: order.estimatedDelivery,
+      estimatedDelivery: estimatedDelivery || order.estimatedDelivery,
       products: (order.orderItems || order.products || []).map(item => ({
         name: item.name || item.productName || item.product?.name || 'Ürün',
         quantity: item.qty || item.quantity || 1,
