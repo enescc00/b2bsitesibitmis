@@ -192,62 +192,38 @@ router.post('/', protect, admin, upload.array('images', 10), async (req, res) =>
             console.error('Form veri dönüşüm hatası:', e);
         }
         
-        // Resim URL'leri listesi
-        formData.images = [];
-
-        // 1) Önce yeni yüklenen dosyaları işleyelim
+        // Cloudinary'den gelen ve mevcut resim URL'lerini işle
+        let images = [];
+        if (formData.existingImages && formData.existingImages.length > 0) {
+            images = formData.existingImages;
+        }
         if (req.files && req.files.length > 0) {
-            try {
-                console.log('Yüklenen dosyalar:', req.files);
-                
-                // Cloudinary yükleme yanıtını doğru şekilde işle
-                const newImagesUrls = req.files.map(file => {
-                    if (file.path) {
-                        // Bazen path yerine secure_url olabilir
-                        return file.path;
-                    } else if (file.secure_url) {
-                        return file.secure_url;
-                    } else if (file.url) {
-                        return file.url;
-                    } else {
-                        console.error('Dosya URL bulunamadı:', file);
-                        return 'https://via.placeholder.com/500';
-                    }
-                });
-                
-                console.log('İşlenmiş resim URL\'leri:', newImagesUrls);
-                formData.images = [...formData.images, ...newImagesUrls];
-            } catch (error) {
-                console.error('Dosya işleme hatası:', error);
-                // Hata olsa bile geçerli resimlerle devam et
-            }
-        }
-
-        // 2) Eğer hâlâ resim yoksa ve existingImages varsa onları kullan
-        if (formData.images.length === 0 && formData.existingImages && formData.existingImages.length > 0) {
-            formData.images = formData.existingImages;
-        }
-        // 3) Hiç resim yoksa placeholder kullan
-        if (formData.images.length === 0) {
-            formData.images = ['https://via.placeholder.com/500'];
+            const newImageUrls = req.files.map(file => file.path);
+            images.push(...newImageUrls);
         }
 
         // Ürün nesnesini oluştur
-        const product = new Product({ 
-            name: formData.name, 
-            images: formData.images,
-            description: formData.description, 
-            category: formData.category, 
-            components: formData.components, 
-            sku: formData.sku, 
-            warrantyPeriod: formData.warrantyPeriod, 
-            specifications: formData.specifications, 
-            boxContents: formData.boxContents, 
-            costPrice: formData.costPrice, 
-            profitMargin: formData.profitMargin, 
-            salePrice: formData.salePrice, 
-            stock: formData.stock, 
-            isActive: formData.isActive 
+        const product = new Product({
+            name: formData.name,
+            images: images, // İşlenmiş resim dizisini ata
+            description: formData.description,
+            category: formData.category,
+            brand: req.body.brand || '',
+            modelCode: req.body.modelCode || '',
+            barcode: req.body.barcode || '',
+            stockCode: req.body.stockCode || '',
+            distributor: req.body.distributor || '',
+            tags: req.body.tags ? req.body.tags.split(',').map(tag => tag.trim()) : [],
+            components: formData.components,
+            sku: formData.sku,
+            warrantyPeriod: formData.warrantyPeriod,
+            specifications: formData.specifications,
+            boxContents: formData.boxContents,
+            costPrice: formData.costPrice,
+            profitMargin: formData.profitMargin,
+            salePrice: formData.salePrice,
+            stock: formData.stock,
+            isActive: formData.isActive
         });
         
         console.log('Ürün nesnesi oluşturuldu, değerler:', {
@@ -289,32 +265,38 @@ router.put('/:id', protect, admin, upload.array('images', 10), async (req, res) 
     try {
         const product = await Product.findById(req.params.id);
         if (product) {
-            // Get URLs of newly uploaded files
-            const newImageUrls = req.files ? req.files.map(file => file.path) : [];
+            // Gelen verileri al
+            const { name, description, category, brand, modelCode, barcode, stockCode, distributor, tags, specifications, boxContents, costPrice, profitMargin, salePrice, stock, isActive, existingImages } = req.body;
 
-            // Get existing images that client wants to keep
-            let existingImages = [];
-            if (req.body.existingImages) {
-                existingImages = Array.isArray(req.body.existingImages) 
-                    ? req.body.existingImages 
-                    : [req.body.existingImages];
+            // Resimleri işle
+            let updatedImages = [];
+            if (existingImages) {
+                updatedImages = Array.isArray(existingImages) ? existingImages : [existingImages];
             }
+            if (req.files && req.files.length > 0) {
+                const newImageUrls = req.files.map(file => file.path);
+                updatedImages.push(...newImageUrls);
+            }
+            product.images = updatedImages;
 
-            product.name = req.body.name ?? product.name;
-            product.images = [...existingImages, ...newImageUrls]; // Combine old and new images
-            product.description = req.body.description ?? product.description;
-            product.category = req.body.category ?? product.category;
-            product.components = req.body.components ?? product.components;
-            product.sku = req.body.sku ?? product.sku;
-            product.warrantyPeriod = req.body.warrantyPeriod ?? product.warrantyPeriod;
-            product.specifications = req.body.specifications ?? product.specifications;
-            product.boxContents = req.body.boxContents ?? product.boxContents;
-            product.costPrice = req.body.costPrice ?? product.costPrice;
-            product.profitMargin = req.body.profitMargin ?? product.profitMargin;
-            product.salePrice = req.body.salePrice ?? product.salePrice;
-            product.stock = req.body.stock ?? product.stock;
-            product.isActive = req.body.isActive ?? product.isActive;
-            
+            // Diğer alanları güncelle
+            product.name = name ?? product.name;
+            product.description = description ?? product.description;
+            product.category = category ?? product.category;
+            product.brand = brand ?? product.brand;
+            product.modelCode = modelCode ?? product.modelCode;
+            product.barcode = barcode ?? product.barcode;
+            product.stockCode = stockCode ?? product.stockCode;
+            product.distributor = distributor ?? product.distributor;
+            product.tags = tags ?? product.tags;
+            product.specifications = specifications ? JSON.parse(specifications) : product.specifications;
+            product.boxContents = boxContents ? JSON.parse(boxContents) : product.boxContents;
+            product.costPrice = costPrice ?? product.costPrice;
+            product.profitMargin = profitMargin ?? product.profitMargin;
+            product.salePrice = salePrice ?? product.salePrice;
+            product.stock = stock ?? product.stock;
+            product.isActive = isActive ?? product.isActive;
+
             const updatedProduct = await product.save();
             res.json(updatedProduct);
         } else {

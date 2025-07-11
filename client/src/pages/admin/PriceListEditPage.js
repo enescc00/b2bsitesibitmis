@@ -10,7 +10,7 @@ function PriceListEditPage() {
     const { authToken } = useContext(AuthContext);
 
     const [name, setName] = useState('');
-    const [globalDiscount, setGlobalDiscount] = useState(0);
+    const [globalDiscountPercentage, setGlobalDiscountPercentage] = useState(0);
     const [categoryDiscounts, setCategoryDiscounts] = useState([]);
     const [productPrices, setProductPrices] = useState([]);
     
@@ -40,7 +40,7 @@ function PriceListEditPage() {
                     if (!priceListRes.ok) throw new Error(priceListData.msg || 'Fiyat listesi detayı alınamadı.');
                     
                     setName(priceListData.name);
-                    setGlobalDiscount(priceListData.globalDiscount || 0);
+                    setGlobalDiscountPercentage(priceListData.globalDiscountPercentage || 0);
                     setCategoryDiscounts(priceListData.categoryDiscounts || []);
                     setProductPrices(priceListData.productPrices || []);
                 }
@@ -72,8 +72,10 @@ function PriceListEditPage() {
 
         const payload = {
             name,
-            globalDiscount,
-            categoryDiscounts: categoryDiscounts.filter(cd => cd.category && cd.discount > 0),
+            globalDiscountPercentage,
+            categoryDiscounts: categoryDiscounts
+                .filter(cd => cd.category && cd.discount > 0)
+                .map(cd => ({ category: cd.category, discountPercentage: cd.discount })),
             productPrices: productPrices.filter(pp => pp.product && pp.price > 0)
         };
 
@@ -110,7 +112,7 @@ function PriceListEditPage() {
                 </div>
                 <div className="form-group">
                     <label>Global İndirim (%)</label>
-                    <input type="number" value={globalDiscount} onChange={(e) => setGlobalDiscount(Number(e.target.value))} />
+                    <input type="number" value={globalDiscountPercentage} onChange={(e) => setGlobalDiscountPercentage(Number(e.target.value))} />
                 </div>
 
                 <hr />

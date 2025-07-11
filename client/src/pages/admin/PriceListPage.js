@@ -68,9 +68,9 @@ function PriceListPage() {
                     {priceLists.length > 0 ? priceLists.map(pl => (
                         <tr key={pl._id}>
                             <td>{pl.name}</td>
-                            <td>{pl.globalDiscount || 0}</td>
+                            <td>{pl.globalDiscountPercentage || 0}</td>
                             <td>
-                                <button onClick={() => navigate(`/admin/pricelists/edit/${pl._id}`)} className="edit-btn">Düzenle</button>
+                                <button onClick={() => navigate(`/admin/pricelists/${pl._id}`)} className="edit-btn">Düzenle</button>
                                 <button onClick={() => handleDelete(pl._id)} className="delete-btn">Sil</button>
                             </td>
                         </tr>
