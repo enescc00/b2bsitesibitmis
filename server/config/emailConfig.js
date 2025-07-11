@@ -139,6 +139,11 @@ const sendTestEmail = async (to) => {
 // Genel amaçlı e-posta gönderme fonksiyonu
 const sendEmail = async (mailOptions) => {
   try {
+    // Template varsa ve html alanı manuel verilmemişse, template render et
+    if (!mailOptions.html && mailOptions.template) {
+      const context = mailOptions.context || {};
+      mailOptions.html = renderTemplate(mailOptions.template, context);
+    }
     console.log('E-posta gönderme işlemi başladı:', { 
       to: mailOptions.to, 
       subject: mailOptions.subject,
