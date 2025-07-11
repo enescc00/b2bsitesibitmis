@@ -43,7 +43,7 @@ const QuoteListPage = () => {
         <tbody>
           {quotes.map((q) => (
             <tr key={q._id}>
-              <td>{q._id}</td>
+                            <td>{q.quoteNumber ? `#${String(q.quoteNumber).padStart(4, '0')}` : q._id.substring(0, 8)}</td>
               <td>{q.customer?.name}</td>
               <td>{new Date(q.createdAt).toLocaleDateString('tr-TR')}</td>
               <td>

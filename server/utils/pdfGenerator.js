@@ -14,7 +14,8 @@ async function generateQuotePdf(quote) {
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
-      const fileName = `quote_${quote._id}.pdf`;
+            const quoteIdentifier = quote.quoteNumber ? String(quote.quoteNumber).padStart(4, '0') : quote._id;
+      const fileName = `teklif_${quoteIdentifier}.pdf`;
       const pdfPath = path.join(uploadsDir, fileName);
 
       // Yerel font dosyaları
@@ -72,7 +73,7 @@ async function generateQuotePdf(quote) {
 
       // Sağ Sütun: Teklif Bilgileri
       doc.font(hasRoboto ? 'Roboto-Bold' : 'Helvetica-Bold').text('Teklif Bilgileri', rightCol, infoTop, { underline: true });
-      const quoteIdText = `Belge No: ${quote._id}`;
+            const quoteIdText = `Belge No: #${quote.quoteNumber ? String(quote.quoteNumber).padStart(4, '0') : quote._id}`;
       const dateText = `Tarih: ${new Date(quote.createdAt).toLocaleDateString('tr-TR')}`;
       doc.font(hasRoboto ? 'Roboto' : 'Helvetica').text(quoteIdText, rightCol, infoTop + 15);
       doc.text(dateText, rightCol, infoTop + 30);
