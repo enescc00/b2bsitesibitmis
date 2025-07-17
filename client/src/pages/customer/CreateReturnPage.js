@@ -25,10 +25,21 @@ const CreateReturnPage = () => {
     }, []);
 
     const handleOrderSelect = (orderId) => {
-        const order = orders.find(o => o._id === orderId);
-        setSelectedOrder(order);
-        // İade edilecek ürünleri başlangıç durumuyla ayarla
-        setProductsToReturn(order.orderItems.map(item => ({ ...item, returnQuantity: 0, checked: false })));
+        try {
+            const order = orders.find(o => o._id === orderId);
+            setSelectedOrder(order);
+            // İade edilecek ürünleri başlangıç durumuyla ayarla
+            if (!order || !order.orderItems || !Array.isArray(order.orderItems)) {
+                toast.error('Sipariş detayı yüklenemedi veya sipariş öğeleri bulunamadı.');
+                console.error('Order items missing:', order);
+                return;
+            }
+            
+            setProductsToReturn(order.orderItems.map(item => ({ ...item, returnQuantity: 0, checked: false })));
+        } catch (error) {
+            console.error('Order selection error:', error);
+            toast.error('Sipariş seçilirken bir hata oluştu.');
+        }
     };
 
     const handleProductCheck = (productId) => {
@@ -80,7 +91,8 @@ const CreateReturnPage = () => {
             setDescription('');
             setProductsToReturn([]);
         } catch (error) {
-            toast.error(error.response?.data?.msg || 'İade talebi oluşturulurken bir hata oluştu.');
+            console.error('Return creation error:', error);
+            toast.error(error.response?.data?.msg || error.message || 'İade talebi oluşturulurken bir hata oluştu.');
         } finally {
             setLoading(false);
         }
@@ -111,7 +123,12 @@ const CreateReturnPage = () => {
                         {productsToReturn.map(item => (
                             <div key={item.product._id} className="flex items-center p-3 border rounded-md">
                                 <input type="checkbox" checked={item.checked} onChange={() => handleProductCheck(item.product._id)} className="mr-4 h-5 w-5"/>
-                                <img src={item.product.images[0]} alt={item.product.name} className="w-16 h-16 object-cover mr-4"/>
+                                <img 
+                                    src={item.product && item.product.images && item.product.images.length > 0 ? item.product.images[0] : '/placeholder-image.jpg'} 
+                                    alt={item.product ? item.product.name : 'Ürün'} 
+                                    className="w-16 h-16 object-cover mr-4" 
+                                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.jpg'; }}
+                                />
                                 <div className="flex-grow">
                                     <p className="font-semibold">{item.product.name}</p>
                                     <p className="text-sm text-gray-600">Sipariş Edilen Miktar: {item.quantity}</p>
