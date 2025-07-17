@@ -47,7 +47,11 @@ const ReturnDetailPage = () => {
             return;
         }
         try {
-            await api.put(`/api/returns/${id}/status`, { status, notes });
+            await apiRequest(`/returns/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status, notes })
+            });
             toast.success('İade durumu başarıyla güncellendi.');
             fetchReturn(); // Sayfayı yenile
             setNotes('');
@@ -59,7 +63,11 @@ const ReturnDetailPage = () => {
     const handleFinancialProcess = async () => {
         if (window.confirm('Bu işlemi onaylamak, iade tutarını müşteri cari hesabından düşecektir. Emin misiniz?')) {
             try {
-                await api.post(`/api/returns/${id}/process-financials`, { productsWithPrices: financials });
+                await apiRequest(`/returns/${id}/process-financials`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ productsWithPrices: financials })
+                });
                 toast.success('Finansal işlem başarıyla tamamlandı.');
                 fetchReturn(); // Sayfayı yenile
             } catch (error) {
