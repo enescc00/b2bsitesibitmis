@@ -6,7 +6,8 @@ import apiRequest from '../../utils/apiHelper';
 const CreateReturnPage = () => {
     const [activeTab, setActiveTab] = useState('new');
     const [purchasedItems, setPurchasedItems] = useState([]);
-    const [filteredItems, setFilteredItems] = useState([]);
+    // filteredItems artık useMemo ile hesaplanacak, ayrı state'e gerek yok
+    // const [filteredItems, setFilteredItems] = useState([]);
     // State to hold return details for each item: { uniqueKey: { quantity, description } }
     const [returnData, setReturnData] = useState({});
     const [returnHistory, setReturnHistory] = useState([]);
@@ -47,28 +48,24 @@ const CreateReturnPage = () => {
         }
     }, [activeTab]);
 
-    useEffect(() => {
+    // Ürün listesini ve arama terimini dinleyerek dinamik olarak filtrele
+    const filteredItems = useMemo(() => {
         try {
-            if (!Array.isArray(purchasedItems)) {
-                setFilteredItems([]);
-                return;
-            }
-            
-            const lowercasedFilter = (searchTerm || '').toLowerCase();
-            const filtered = purchasedItems.filter(item => {
+            if (!Array.isArray(purchasedItems)) return [];
+
+            const lowercasedFilter = String(searchTerm || '').toLowerCase();
+
+            return purchasedItems.filter(item => {
                 if (!item || !item.product) return false;
-                
-                // Hata düzeltmesi: Değerleri string'e çevirerek toLowerCase çağır
-                const productName = String(item.product.name || '').toLowerCase();
-                const orderNum = String(item.orderNumber || '').toLowerCase();
-                
+
+                const productName = String(item.product.name ?? '').toLowerCase();
+                const orderNum = String(item.orderNumber ?? '').toLowerCase();
+
                 return productName.includes(lowercasedFilter) || orderNum.includes(lowercasedFilter);
             });
-            
-            setFilteredItems(filtered);
-        } catch (error) {
-            console.error('Filtreleme hatası:', error);
-            setFilteredItems([]);
+        } catch (err) {
+            console.error('Filtreleme hatası:', err);
+            return [];
         }
     }, [searchTerm, purchasedItems]);
 
