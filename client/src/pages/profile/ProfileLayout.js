@@ -14,6 +14,7 @@ function ProfileLayout() {
                         <NavLink to="/profile/wishlist">Favorilerim</NavLink>
                         <NavLink to="/profile/statement">Cari Ekstrem</NavLink>
                         <NavLink to="/profile/quotes">Tekliflerim</NavLink>
+                        <NavLink to="/profile/create-return">İade Talebi Oluştur</NavLink>
                         <NavLink to="/new-quote">Yeni Teklif</NavLink>
                     </nav>
                 </aside>

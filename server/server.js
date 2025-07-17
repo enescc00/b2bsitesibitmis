@@ -183,6 +183,7 @@ safeMount('./routes/quotes', '/api/quotes');
 safeMount('./routes/supplier', '/api/supplier');
 safeMount('./routes/priceListRoutes', '/api/pricelists');
 safeMount('./routes/testRoutes', '/api/test'); // Test rotaları
+safeMount('./routes/returns', '/api/returns'); // İade rotaları
 
 // ZAMANLANMIŞ GÖREV (CRON JOB)
 // Her gün gece yarısı (00:00) çalışır.

@@ -20,15 +20,24 @@ const baseUserSchema = new Schema({
   password: { type: String, required: true, select: false },
   
   // === GÜNCELLEME: Yeni "sales_rep" rolü eklendi ===
-  role: { 
-      type: String, 
-      enum: ['customer', 'supplier', 'sales_rep', 'admin'],
-      default: 'customer' 
+  role: {
+      type: String,
+      required: true,
+      enum: ['customer', 'admin', 'pazarlamaci', 'sevkiyat', 'muhasebe'],
+      default: 'customer'
   },
   priceList: {
     type: Schema.Types.ObjectId,
     ref: 'PriceList',
     default: null
+  },
+  shippingAddress: {
+    type: Schema.Types.ObjectId,
+    ref: 'Address'
+  },
+  balance: {
+    type: Number,
+    default: 0
   },
   paymentTerms: {
     type: String,

@@ -32,6 +32,10 @@ function AdminLayout() {
             <i className="fas fa-archive"></i>
             <span>Eksik Ürünler</span>
           </NavLink>
+          <NavLink to="/admin/returns" className="sidebar-link">
+            <i className="fas fa-undo"></i>
+            <span>İade Yönetimi</span>
+          </NavLink>
           
           <hr className="sidebar-divider" />
 
