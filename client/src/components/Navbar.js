@@ -125,7 +125,7 @@ function Navbar() {
                     <div className="search-suggestions">
                         {suggestions.map(product => (
                             <Link key={product._id} to={`/product/${product._id}`} className="suggestion-item" onClick={onSuggestionClick}>
-                                <img src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[0]}` : 'https://via.placeholder.com/40x40?text=No+Image'} alt={product.name} className="suggestion-image" />
+                                <img src={product.images && product.images.length > 0 ? `${API_BASE_URL}${product.images[0]}` : 'https://placehold.co/40x40?text=No+Image'} alt={product.name} className="suggestion-image" />
                                 <span className="suggestion-name">{product.name}</span>
                             </Link>
                         ))}

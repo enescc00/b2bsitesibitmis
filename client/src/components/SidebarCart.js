@@ -24,7 +24,7 @@ function SidebarCart() {
                     cartItems.map(item => (
                         <div key={item._id} className="sidebar-cart-item">
                             <img 
-                                src={item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://via.placeholder.com/60x60?text=No+Image'} 
+                                src={item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://placehold.co/60x60?text=No+Image'} 
                                 alt={item.name} 
                             />
                             <div className="item-details">
