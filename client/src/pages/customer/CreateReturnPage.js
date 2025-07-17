@@ -49,7 +49,6 @@ const CreateReturnPage = () => {
 
     useEffect(() => {
         try {
-            // Eğer purchasedItems geçerli bir array değilse, filtreleme yapma
             if (!Array.isArray(purchasedItems)) {
                 setFilteredItems([]);
                 return;
@@ -59,8 +58,10 @@ const CreateReturnPage = () => {
             const filtered = purchasedItems.filter(item => {
                 if (!item || !item.product) return false;
                 
-                const productName = (item.product.name || '').toLowerCase();
-                const orderNum = (item.orderNumber || '').toLowerCase();
+                // Hata düzeltmesi: Değerleri string'e çevirerek toLowerCase çağır
+                const productName = String(item.product.name || '').toLowerCase();
+                const orderNum = String(item.orderNumber || '').toLowerCase();
+                
                 return productName.includes(lowercasedFilter) || orderNum.includes(lowercasedFilter);
             });
             
@@ -293,145 +294,195 @@ const CreateReturnPage = () => {
     };
 
 
+    const TabButton = ({ tabName, currentTab, setTab, children }) => (
+        <button
+            onClick={() => setTab(tabName)}
+            className={`relative px-4 py-2 text-sm font-semibold transition-colors duration-300 ${
+                currentTab === tabName
+                    ? 'text-blue-600'
+                    : 'text-gray-500 hover:text-gray-800'
+            }`}>
+            {children}
+            {currentTab === tabName && (
+                <span className="absolute bottom-0 left-0 w-full h-0.5 bg-blue-600 rounded-full" />
+            )}
+        </button>
+    );
+
     return (
         <div className="container mx-auto p-4 font-sans">
-            <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">İade Yönetimi</h1>
-            <div className="flex justify-center border-b border-gray-200 mb-6">
-                <button onClick={() => setActiveTab('new')} className={`py-3 px-8 font-semibold text-base transition-colors border-b-4 ${activeTab === 'new' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}><FaBox className="inline mr-2" /> Yeni İade Talebi</button>
-                <button onClick={() => setActiveTab('history')} className={`py-3 px-8 font-semibold text-base transition-colors border-b-4 ${activeTab === 'history' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}><FaHistory className="inline mr-2" /> İade Geçmişim</button>
+            <div className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4">
+                <h1 className="text-3xl font-bold text-gray-800">İade Yönetimi</h1>
+                <div className="flex border border-gray-200 rounded-lg p-1">
+                    <TabButton tabName="new" currentTab={activeTab} setTab={setActiveTab}><FaBox className="mr-2"/>Yeni İade Talebi</TabButton>
+                    <TabButton tabName="history" currentTab={activeTab} setTab={setActiveTab}><FaHistory className="mr-2"/>İade Geçmişim</TabButton>
+                </div>
             </div>
 
-            {activeTab === 'new' && (
-                <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
-                    <h2 className="text-2xl font-semibold mb-2 text-gray-700">İade Edilecek Ürünleri Belirtin</h2>
-                    <p className="text-gray-500 mb-6">Geçmiş siparişlerinizden iade etmek istediğiniz ürünlerin miktarını ve nedenini belirtin.</p>
-                    {loadingProducts ? (
-                        <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
-                    ) : error ? (
-                        <div className="flex flex-col items-center justify-center py-10 bg-red-50 rounded-lg text-center">
-                            <FaExclamationTriangle className="text-red-500 text-3xl mb-2" />
-                            <p className="text-red-700">{error}</p>
-                            <button 
-                                onClick={() => fetchPurchasedItems()} 
-                                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                            >
-                                Yeniden Dene
-                            </button>
-                        </div>
-                    ) : purchasedItems.length === 0 ? (
-                        <div className="text-center py-10 bg-gray-50 rounded-lg">
-                            <p className="text-gray-600">İade edilebilecek bir ürün bulunamadı.</p>
-                        </div>
-                    ) : (
-                        <form onSubmit={handleSubmit}>
-                            <div className="mb-6">
-                                <div className="relative"><span className="absolute inset-y-0 left-0 flex items-center pl-3"><FaSearch className="text-gray-400" /></span><input type="text" placeholder="Ürün adı veya sipariş no ile ara..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" /></div>
+            <main>
+                {activeTab === 'new' && (
+                    <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                        {loadingProducts ? (
+                            <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
+                        ) : error ? (
+                            <div className="flex flex-col items-center justify-center py-10 bg-red-50 rounded-lg text-center">
+                                <FaExclamationTriangle className="text-red-500 text-3xl mb-2" />
+                                <p className="text-red-700">{error}</p>
+                                <button 
+                                    onClick={() => fetchPurchasedItems()} 
+                                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                >
+                                    Yeniden Dene
+                                </button>
                             </div>
+                        ) : purchasedItems.length === 0 ? (
+                            <div className="text-center py-10 bg-gray-50 rounded-lg">
+                                <p className="text-gray-600">İade edilebilecek bir ürün bulunamadı.</p>
+                            </div>
+                        ) : (
+                            <form onSubmit={handleSubmit}>
+                                <div className="relative w-full sm:w-72">
+                                    <FaSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
+                                    <input
+                                        type="text"
+                                        placeholder="Ürün veya sipariş no ile ara..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                    />
+                                </div>
+
+                                <div className="overflow-x-auto mt-4">
+                                    <table className="min-w-full divide-y divide-gray-200">
+                                        <thead className="bg-gray-100">
+                                            <tr>
+                                                <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Görsel</th>
+                                                <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Ürün Bilgisi</th>
+                                                <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">Alınan</th>
+                                                <th scope="col" className="px-4 py-3 text-center text-xs font-bold text-gray-600 uppercase tracking-wider">İade Miktarı</th>
+                                                <th scope="col" className="px-4 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">İade Nedeni</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="bg-white divide-y divide-gray-200">
+                                            {filteredItems.map(item => {
+                                                const uniqueKey = `${item.orderId}-${item.product._id}`;
+                                                const isSelected = !!returnData[uniqueKey];
+                                                return (
+                                                    <tr key={uniqueKey} className={`${isSelected ? 'bg-green-50' : ''}`}>
+                                                        <td className="px-4 py-4">
+                                                            <img 
+                                                                src={getImageUrl(item.product?.images?.[0])} 
+                                                                alt={item.product?.name} 
+                                                                className="w-16 h-16 object-cover rounded-md bg-gray-100" 
+                                                                onError={(e) => { 
+                                                                    console.log('Resim yüklenemedi:', e.target.src);
+                                                                    e.target.onerror = null; 
+                                                                    e.target.src = 'https://placehold.co/150x150'; 
+                                                                }} 
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-4 align-top">
+                                                            <p className="font-bold text-sm text-gray-900">{item.product.name}</p>
+                                                            <p className="text-xs text-gray-500">Sipariş No: {item.orderNumber}</p>
+                                                            <p className="text-xs text-gray-500">Tarih: {new Date(item.orderDate).toLocaleDateString()}</p>
+                                                        </td>
+                                                        <td className="px-4 py-4 align-top text-center font-medium text-gray-800">{item.quantity}</td>
+                                                        <td className="px-4 py-4 align-top">
+                                                            <input
+                                                                type="number"
+                                                                min="0"
+                                                                max={item.quantity}
+                                                                value={returnData[uniqueKey]?.quantity || ''}
+                                                                onChange={(e) => handleReturnDataChange(uniqueKey, 'quantity', e.target.value)}
+                                                                className="w-24 p-2 border border-gray-300 rounded-md text-center focus:ring-2 focus:ring-blue-500"
+                                                            />
+                                                        </td>
+                                                        <td className="px-4 py-4 align-top">
+                                                            <input
+                                                                type="text"
+                                                                placeholder="İade nedenini belirtin..."
+                                                                value={returnData[uniqueKey]?.description || ''}
+                                                                onChange={(e) => handleReturnDataChange(uniqueKey, 'description', e.target.value)}
+                                                                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 transition-all duration-300 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                                                                disabled={!isSelected}
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div className="mt-8 text-right">
+                                    <button 
+                                        type="submit" 
+                                        disabled={isSubmitDisabled} 
+                                        className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all duration-300"
+                                    >
+                                        İade Talebi Oluştur
+                                    </button>
+                                </div>
+                            </form>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'history' && (
+                    <div className="bg-white rounded-xl shadow-lg p-6 sm:p-8">
+                        <h2 className="text-2xl font-semibold mb-6 text-gray-700">İade Geçmişi</h2>
+                        {loadingHistory ? (
+                            <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
+                        ) : error ? (
+                            <div className="flex flex-col items-center justify-center py-10 bg-red-50 rounded-lg text-center">
+                                <FaExclamationTriangle className="text-red-500 text-3xl mb-2" />
+                                <p className="text-red-700">{error}</p>
+                                <button 
+                                    onClick={() => fetchReturnHistory()} 
+                                    className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                                >
+                                    Yeniden Dene
+                                </button>
+                            </div>
+                        ) : returnHistory.length === 0 ? (
+                            <div className="text-center py-10 bg-gray-50 rounded-lg"><p className="text-gray-600">Daha önce oluşturulmuş bir iade talebiniz bulunmamaktadır.</p></div>
+                        ) : (
                             <div className="overflow-x-auto">
                                 <table className="min-w-full divide-y divide-gray-200">
                                     <thead className="bg-gray-50">
                                         <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Görsel</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürün Bilgisi</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alınan Miktar</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İade Miktarı</th>
-                                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Açıklama</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sipariş No</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tarih</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürünler</th>
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {filteredItems.map(item => {
-                                            const uniqueKey = `${item.orderId}-${item.product._id}`;
-                                            const isSelected = !!returnData[uniqueKey];
-                                            return (
-                                                <tr key={uniqueKey} className={`${isSelected ? 'bg-green-50' : ''}`}>
-                                                    <td className="px-4 py-4">
-                                                        {/* Debug için resimlerin kaynak URL'ini göster */}
-                                                        {/* <div className="text-xs text-gray-400 mb-1">
-                                                            {item.product?.images?.[0] || 'Resim yok'}
-                                                        </div> */}
-                                                        <img 
-                                                            src={getImageUrl(item.product?.images?.[0])} 
-                                                            alt={item.product?.name} 
-                                                            className="w-16 h-16 object-cover rounded-md bg-gray-100" 
-                                                            onError={(e) => { 
-                                                                console.log('Resim yüklenemedi:', e.target.src);
-                                                                e.target.onerror = null; 
-                                                                e.target.src = 'https://placehold.co/150x150'; 
-                                                            }} 
-                                                        />
-                                                    </td>
-                                                    <td className="px-4 py-4 align-top">
-                                                        <p className="font-bold text-sm text-gray-900">{item.product.name}</p>
-                                                        <p className="text-xs text-gray-500">Sipariş No: {item.orderNumber}</p>
-                                                    </td>
-                                                    <td className="px-4 py-4 align-top"><span className="text-sm font-medium">{item.quantity}</span></td>
-                                                    <td className="px-4 py-4 align-top">
-                                                        <input type="number" value={returnData[uniqueKey]?.quantity || ''} onChange={(e) => handleReturnDataChange(uniqueKey, 'quantity', e.target.value)} className="w-20 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="0" min="0" max={item.quantity} />
-                                                    </td>
-                                                    <td className="px-4 py-4 align-top">
-                                                        <input type="text" value={returnData[uniqueKey]?.description || ''} onChange={(e) => handleReturnDataChange(uniqueKey, 'description', e.target.value)} className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500" placeholder="İade nedeni..." disabled={!isSelected} />
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
+                                        {returnHistory.map(ret => (
+                                            <tr key={ret._id}>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{ret.orderId.orderNumber}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{new Date(ret.createdAt).toLocaleDateString()}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${ret.status === 'Onaylandı' ? 'bg-green-100 text-green-800' : ret.status === 'Reddedildi' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                                                        {ret.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-500">
+                                                    <ul>
+                                                        {ret.products.map(p => (
+                                                            <li key={p.product._id}>{p.product.name} - {p.quantity} adet</li>
+                                                        ))}
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
-                            <div className="mt-8 text-center">
-                                <button type="submit" disabled={isSubmitDisabled} className={`py-3 px-12 text-lg font-semibold text-white rounded-lg transition-all shadow-md hover:shadow-lg transform hover:-translate-y-0.5 ${isSubmitDisabled ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}>
-                                    {loading ? <span className="flex items-center justify-center"><FaSpinner className="animate-spin mr-2" /> Gönderiliyor...</span> : 'İade Talebi Oluştur'}
-                                </button>
-                            </div>
-                        </form>
-                    )}
-                </div>
-            )}
-
-            {activeTab === 'history' && (
-                 <div className="bg-white rounded-xl shadow-lg p-8">
-                    <h2 className="text-2xl font-semibold mb-4 text-gray-700">İade Geçmişim</h2>
-                    {loadingHistory ? (
-                        <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
-                    ) : returnHistory.length === 0 ? (
-                        <div className="text-center py-10 bg-gray-50 rounded-lg"><p className="text-gray-600">Daha önce oluşturulmuş bir iade talebiniz yok.</p></div>
-                    ) : (
-                        <div className="overflow-x-auto">
-                            <table className="min-w-full divide-y divide-gray-200">
-                                <thead className="bg-gray-50">
-                                    <tr>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Talep Tarihi</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sipariş No</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürünler</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
-                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="bg-white divide-y divide-gray-200">
-                                    {returnHistory.map((returnItem) => (
-                                        <tr key={returnItem._id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(returnItem.createdAt).toLocaleDateString('tr-TR')}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{returnItem.order?.orderNumber || 'N/A'}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-800">
-                                                {returnItem.products.map((prod, i) => (
-                                                    <div key={i}>{prod.product?.name || 'Bilinmeyen Ürün'} <span className="text-gray-500">x {prod.quantity}</span></div>
-                                                ))}
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(returnItem.status)}`}>{getStatusText(returnItem.status)}</span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                                {returnItem.status === 'İade Talebi Oluşturuldu' && (
-                                                    <button onClick={() => handleCancelReturn(returnItem._id)} className="text-red-600 hover:text-red-800 transition">İptal Et</button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
-                </div>
-            )}
+                        )}
+                    </div>
+                )}
+            </main>
         </div>
     );
 };
