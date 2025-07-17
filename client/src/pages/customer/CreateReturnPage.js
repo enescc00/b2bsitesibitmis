@@ -15,12 +15,14 @@ const CreateReturnPage = () => {
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [loadingHistory, setLoadingHistory] = useState(true);
 
-    // Correctly construct image URLs
-    const baseApiUrl = process.env.REACT_APP_API_URL.replace('/api', '');
+    // Correctly construct image URLs with fallback when env variable is missing
+    const baseApiUrl = ((process.env.REACT_APP_API_URL || window.location.origin).replace(/\/?api$/i, '')).replace(/\/$/, '');
     const getImageUrl = (path) => {
         if (!path) return 'https://placehold.co/150x150';
         if (path.startsWith('http')) return path;
-        return `${baseApiUrl}/${path}`;
+        // Ensure windows backslashes are converted to URL-friendly slashes
+        const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
+        return `${baseApiUrl}/${cleanPath}`;
     };
 
     useEffect(() => {
