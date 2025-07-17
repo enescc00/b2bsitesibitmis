@@ -29,10 +29,16 @@ const CreateReturnPage = () => {
     
     const getImageUrl = (path) => {
         // Path yoksa veya geçersizse placeholder döndür
-        if (!path || path === 'undefined') return 'https://placehold.co/150x150';
+        if (!path || path === 'undefined') return 'https://placehold.co/150x150?text=Görsel+Yok';
         
         // Eğer path zaten tam URL ise doğrudan kullan
-        if (path.startsWith('http')) return path;
+        if (path.startsWith('http')) {
+            // via.placeholder.com ile başlayan URL'leri placehold.co'ya çevir
+            if (path.includes('via.placeholder.com')) {
+                return path.replace('via.placeholder.com', 'placehold.co');
+            }
+            return path;
+        }
         
         // Windows backslash'leri URL dostu slash'lere dönüştür
         const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');

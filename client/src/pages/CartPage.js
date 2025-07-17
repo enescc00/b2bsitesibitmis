@@ -29,7 +29,7 @@ function CartPage() {
               {cartItems.map(item => (
                 <div key={item._id} className="cart-item">
                     <div className="cart-item-image">
-                        <img src={item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://via.placeholder.com/80x80?text=No+Image'} alt={item.name} />
+                        <img src={item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://placehold.co/80x80?text=No+Image'} alt={item.name} />
                     </div>
                     <div className="cart-item-details">
                         <div className="cart-item-name">{item.name}</div>
