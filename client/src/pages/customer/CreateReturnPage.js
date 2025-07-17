@@ -48,23 +48,40 @@ const CreateReturnPage = () => {
         }
     }, [activeTab]);
 
-    // Ürün listesini ve arama terimini dinleyerek dinamik olarak filtrele
-    const filteredItems = useMemo(() => {
-        try {
-            if (!Array.isArray(purchasedItems)) return [];
+    // Debugging eklentisi: Satın alınan ürünlerde orderNumber'ın tipini kontrol et
+    useEffect(() => {
+        if (Array.isArray(purchasedItems) && purchasedItems.length > 0) {
+            console.log('Debug - Satın alınan ürün örneği:', {
+                ilkÜrün: purchasedItems[0],
+                orderNumberTipi: purchasedItems[0]?.orderNumber ? typeof purchasedItems[0].orderNumber : 'tanımsız',
+                orderNumberDeğeri: purchasedItems[0]?.orderNumber
+            });
+        }
+    }, [purchasedItems]);
 
+    // Güçlendirilmiş filtreleme: Her türlü hatayı önlemek için güvenli dönüşümler
+    const filteredItems = useMemo(() => {
+        if (!Array.isArray(purchasedItems)) return [];
+        if (!searchTerm || searchTerm.trim() === '') return purchasedItems;
+
+        try {
             const lowercasedFilter = String(searchTerm || '').toLowerCase();
 
             return purchasedItems.filter(item => {
-                if (!item || !item.product) return false;
-
-                const productName = String(item.product.name ?? '').toLowerCase();
-                const orderNum = String(item.orderNumber ?? '').toLowerCase();
-
-                return productName.includes(lowercasedFilter) || orderNum.includes(lowercasedFilter);
+                try {
+                    // İki kez kontrol et ve güvenli şekilde dönüştür
+                    const productName = item?.product?.name ? String(item.product.name) : '';
+                    const orderNumber = item?.orderNumber ? String(item.orderNumber) : '';
+                    
+                    return productName.toLowerCase().includes(lowercasedFilter) || 
+                           orderNumber.toLowerCase().includes(lowercasedFilter);
+                } catch (innerError) {
+                    console.error('Öğe filtreleme hatası:', innerError, 'Öğe:', item);
+                    return false;
+                }
             });
-        } catch (err) {
-            console.error('Filtreleme hatası:', err);
+        } catch (outerError) {
+            console.error('Genel filtreleme hatası:', outerError);
             return [];
         }
     }, [searchTerm, purchasedItems]);
