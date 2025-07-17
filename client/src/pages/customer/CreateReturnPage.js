@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
 import api from '../../config/api';
 import { toast } from 'react-toastify';
 
@@ -10,7 +9,7 @@ const CreateReturnPage = () => {
     const [description, setDescription] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { user } = useSelector(state => state.auth);
+    
 
     useEffect(() => {
         const fetchOrders = async () => {

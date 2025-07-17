@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useContext } from 'react';
+import { AuthContext } from '../../context/AuthContext';
 import api from '../../config/api';
 import { toast } from 'react-toastify';
 
 const ReturnDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { user } = useSelector(state => state.auth);
+    const { user } = useContext(AuthContext);
 
     const [returnRequest, setReturnRequest] = useState(null);
     const [loading, setLoading] = useState(true);
