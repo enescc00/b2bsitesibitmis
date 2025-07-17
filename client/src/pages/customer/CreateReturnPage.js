@@ -6,45 +6,41 @@ import { FaBox, FaHistory, FaArrowLeft, FaSearch, FaSpinner } from 'react-icons/
 const CreateReturnPage = () => {
     // Ana durum değişkenleri
     const [activeTab, setActiveTab] = useState('new'); // 'new' veya 'history'
-    const [purchasedProducts, setPurchasedProducts] = useState([]); // Tüm satın alınmış ürünler
-    const [selectedProducts, setSelectedProducts] = useState({}); // İade edilecek ürünler {id: {quantity, orderId}}
-    const [description, setDescription] = useState(''); // İade açıklaması
+    const [purchasedProducts, setPurchasedProducts] = useState([]);
+    const [filteredProducts, setFilteredProducts] = useState([]);
+    const [selectedProducts, setSelectedProducts] = useState({}); // { productId: { quantity, orderId, productDetails } }
+    const [returnHistory, setReturnHistory] = useState([]);
+    const [description, setDescription] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(true);
-    const [returnHistory, setReturnHistory] = useState([]);
     const [loadingHistory, setLoadingHistory] = useState(true);
 
     useEffect(() => {
         fetchAllPurchasedProducts();
         fetchReturnHistory();
     }, []);
+
+    useEffect(() => {
+        const lowercasedFilter = searchTerm.toLowerCase();
+        const filtered = purchasedProducts.filter(item => {
+            return item.product.name.toLowerCase().includes(lowercasedFilter) ||
+                   item.orderNumber.toLowerCase().includes(lowercasedFilter);
+        });
+        setFilteredProducts(filtered);
+    }, [searchTerm, purchasedProducts]);
     
     // Tüm tamamlanmış siparişlerdeki ürünleri getir
     const fetchAllPurchasedProducts = async () => {
         setLoadingProducts(true);
         try {
             const data = await apiRequest('/orders/myorders?status=Tamamlandı').then(r => r.json());
-            
-            // Tüm siparişlerden ürünleri çıkar ve düzleştir
-            const allProducts = [];
-            data.forEach(order => {
-                if (order.orderItems && Array.isArray(order.orderItems)) {
-                    order.orderItems.forEach(item => {
-                        // Her ürüne sipariş bilgisini ekle
-                        allProducts.push({
-                            ...item,
-                            orderDate: new Date(order.createdAt),
-                            orderNumber: order.orderNumber,
-                            orderId: order._id
-                        });
-                    });
-                }
-            });
-            
-            // Tarih olarak en yeni satın alımlar üstte olacak şekilde sırala
+            const allProducts = data.flatMap(order => 
+                order.orderItems?.map(item => ({...item, orderDate: new Date(order.createdAt), orderNumber: order.orderNumber, orderId: order._id})) || []
+            );
             allProducts.sort((a, b) => b.orderDate - a.orderDate);
-            
             setPurchasedProducts(allProducts);
+            setFilteredProducts(allProducts);
         } catch (error) {
             console.error('Products fetch error:', error);
             toast.error('Satın alınan ürünler yüklenirken bir hata oluştu.');
@@ -57,7 +53,8 @@ const CreateReturnPage = () => {
     const fetchReturnHistory = async () => {
         setLoadingHistory(true);
         try {
-            const data = await apiRequest('/returns/myreturns').then(r => r.json());
+            // API yolu düzeltildi: /returns/myreturns -> /returns
+            const data = await apiRequest('/returns').then(r => r.json());
             setReturnHistory(data);
         } catch (error) {
             console.error('Return history fetch error:', error);
@@ -218,90 +215,84 @@ const CreateReturnPage = () => {
 
     return (
         <div className="container mx-auto p-4">
-            <h1 className="text-2xl font-bold mb-6 text-center text-blue-800">İade Yönetimi</h1>
+            <h1 className="text-3xl font-bold mb-6 text-center text-gray-800">İade Yönetimi</h1>
             
-            {/* Sekme menüsü */}
-            <div className="flex border-b border-gray-200 mb-6">
+            <div className="flex justify-center border-b border-gray-300 mb-6">
                 <button 
                     onClick={() => setActiveTab('new')}
-                    className={`py-3 px-6 font-semibold text-lg rounded-t-lg transition-colors ${
-                        activeTab === 'new' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                    <FaBox className="inline mr-2" /> Yeni İade Talebi Oluştur
+                    className={`py-3 px-8 font-semibold text-lg transition-colors border-b-4 ${activeTab === 'new' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}>
+                    <FaBox className="inline mr-2" /> Yeni İade Talebi
                 </button>
                 <button 
                     onClick={() => setActiveTab('history')}
-                    className={`py-3 px-6 font-semibold text-lg rounded-t-lg transition-colors ${
-                        activeTab === 'history' 
-                            ? 'bg-blue-600 text-white' 
-                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                >
-                    <FaHistory className="inline mr-2" /> İade Taleplerim
+                    className={`py-3 px-8 font-semibold text-lg transition-colors border-b-4 ${activeTab === 'history' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-blue-600'}`}>
+                    <FaHistory className="inline mr-2" /> İade Geçmişim
                 </button>
             </div>
             
-            {/* Yeni İade Talebi Sekmesi */}
             {activeTab === 'new' && (
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h2 className="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">Satın Aldığınız Ürünler</h2>
+                <div className="bg-white rounded-xl shadow-md p-8">
+                    <h2 className="text-2xl font-semibold mb-2 text-gray-700">İade Edilecek Ürünleri Seçin</h2>
+                    <p className="text-gray-500 mb-6">Geçmiş siparişlerinizdeki ürünleri listeleyin, arayın ve iade talebi oluşturun.</p>
                     
                     {loadingProducts ? (
-                        <div className="flex justify-center items-center py-10">
-                            <FaSpinner className="animate-spin text-3xl text-blue-600" />
-                        </div>
+                        <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
                     ) : purchasedProducts.length === 0 ? (
-                        <div className="bg-yellow-50 p-4 rounded-md text-yellow-700">
-                            <p>İade edilebilecek tamamlanmış bir siparişiniz bulunmuyor.</p>
+                        <div className="text-center py-10 bg-gray-50 rounded-lg">
+                            <p className="text-gray-600">İade edilebilecek bir ürün bulunamadı.</p>
                         </div>
                     ) : (
                         <form onSubmit={handleSubmit}>
-                            <div className="space-y-4 mb-6">
-                                {purchasedProducts.map((item, index) => (
-                                    <div key={`${item.product._id}-${index}`} className="flex flex-col sm:flex-row items-center p-4 border rounded-lg transition-colors hover:bg-blue-50">
-                                        <div className="flex items-center w-full sm:w-auto mb-3 sm:mb-0">
-                                            <input 
-                                                type="checkbox" 
-                                                id={`product-${item.product._id}-${index}`}
-                                                checked={!!selectedProducts[item.product._id]}
-                                                onChange={(e) => handleProductSelect(item, e.target.checked)}
-                                                className="w-5 h-5 mr-4 accent-blue-600"
-                                            />
-                                            <div className="relative w-20 h-20 mr-4 flex-shrink-0 bg-gray-100 rounded-md overflow-hidden">
-                                                <img 
-                                                    src={item.product && item.product.images && item.product.images.length > 0 
-                                                        ? item.product.images[0] 
-                                                        : '/placeholder-image.jpg'
-                                                    } 
-                                                    alt={item.product ? item.product.name : 'Ürün'}
-                                                    className="w-full h-full object-cover"
-                                                    onError={(e) => { e.target.onerror = null; e.target.src = '/placeholder-image.jpg'; }}
-                                                />
+                            <div className="mb-6">
+                                <div className="relative">
+                                    <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+                                        <FaSearch className="text-gray-400" />
+                                    </span>
+                                    <input
+                                        type="text"
+                                        placeholder="Ürün adı veya sipariş no ile ara..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="w-full p-3 pl-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-3 mb-6 max-h-[50vh] overflow-y-auto pr-2">
+                                {filteredProducts.map((item, index) => (
+                                    <div key={`${item.product._id}-${index}`} className={`p-4 border rounded-lg flex items-start gap-4 transition-all ${selectedProducts[item.product._id] ? 'bg-blue-50 border-blue-300' : 'bg-white hover:border-gray-300'}`}>
+                                        <input 
+                                            type="checkbox" 
+                                            id={`product-${item.product._id}-${index}`}
+                                            checked={!!selectedProducts[item.product._id]}
+                                            onChange={(e) => handleProductSelect(item, e.target.checked)}
+                                            className="mt-1 w-5 h-5 accent-blue-600 flex-shrink-0"
+                                        />
+                                        <img 
+                                            src={item.product?.images?.[0] || 'https://via.placeholder.com/150'}
+                                            alt={item.product?.name || 'Ürün'}
+                                            className="w-24 h-24 object-cover rounded-md bg-gray-100"
+                                            onError={(e) => { e.target.onerror = null; e.target.src = 'https://via.placeholder.com/150'; }}
+                                        />
+                                        <div className="flex-grow">
+                                            <p className="font-bold text-lg text-gray-800">{item.product.name}</p>
+                                            <div className="text-sm text-gray-500 mt-1">
+                                                <span>Sipariş No: <span className="font-medium text-gray-600">{item.orderNumber}</span></span>
+                                                <span className="mx-2">|</span>
+                                                <span>Tarih: <span className="font-medium text-gray-600">{item.orderDate.toLocaleDateString('tr-TR')}</span></span>
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                <span>Satın Alınan: <span className="font-medium text-gray-600">{item.quantity} adet</span></span>
                                             </div>
                                         </div>
-                                        
-                                        <div className="flex-grow text-center sm:text-left mb-3 sm:mb-0">
-                                            <p className="font-semibold text-blue-900">{item.product.name}</p>
-                                            <p className="text-sm text-gray-600">Sipariş No: {item.orderNumber}</p>
-                                            <p className="text-sm text-gray-600">
-                                                Sipariş Tarihi: {item.orderDate.toLocaleDateString('tr-TR')}
-                                            </p>
-                                            <p className="text-sm text-gray-600">
-                                                Satın Alınan Miktar: <span className="font-medium">{item.quantity} adet</span>
-                                            </p>
-                                        </div>
-                                        
                                         {selectedProducts[item.product._id] && (
-                                            <div className="flex items-center">
-                                                <label className="mr-2 text-blue-800 font-medium">İade Adedi:</label>
+                                            <div className="flex items-center gap-2">
+                                                <label className="text-sm font-medium text-gray-700">İade Adedi:</label>
                                                 <input 
                                                     type="number" 
                                                     value={selectedProducts[item.product._id].quantity}
                                                     onChange={(e) => handleQuantityChange(item, e.target.value)}
-                                                    className="w-20 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                                    className="w-20 p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                                                     min="1"
                                                     max={item.quantity}
                                                 />
@@ -312,30 +303,24 @@ const CreateReturnPage = () => {
                             </div>
                             
                             <div className="mb-6">
-                                <label htmlFor="description" className="block text-lg font-semibold mb-2 text-blue-700">
-                                    İade Nedeninizi Açıklayın (Zorunlu)
-                                </label>
+                                <label htmlFor="description" className="block text-lg font-semibold mb-2 text-gray-700">İade Nedeni</label>
                                 <textarea 
                                     id="description"
                                     value={description}
                                     onChange={(e) => setDescription(e.target.value)}
-                                    className="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                                    className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 resize-y"
                                     rows="4"
-                                    placeholder="Lütfen ürünleri neden iade etmek istediğinizi detaylı bir şekilde açıklayınız..."
+                                    placeholder="Lütfen iade nedeninizi kısaca açıklayınız..."
                                 />
                             </div>
                             
                             <div className="text-center">
                                 <button 
                                     type="submit" 
-                                    disabled={loading || Object.keys(selectedProducts).length === 0} 
-                                    className="bg-blue-600 text-white py-3 px-8 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors font-semibold text-lg"
+                                    disabled={loading || Object.keys(selectedProducts).length === 0}
+                                    className="bg-blue-600 text-white py-3 px-10 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-all font-semibold text-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
                                 >
-                                    {loading ? (
-                                        <span className="flex items-center justify-center">
-                                            <FaSpinner className="animate-spin mr-2" /> İşleniyor...
-                                        </span>
-                                    ) : 'İade Talebini Gönder'}
+                                    {loading ? <span className="flex items-center"><FaSpinner className="animate-spin mr-2" /> Gönderiliyor...</span> : 'İade Talebi Oluştur'}
                                 </button>
                             </div>
                         </form>
@@ -343,73 +328,43 @@ const CreateReturnPage = () => {
                 </div>
             )}
             
-            {/* İade Taleplerim Sekmesi */}
             {activeTab === 'history' && (
-                <div className="bg-white rounded-lg shadow-lg p-6">
-                    <h2 className="text-xl font-semibold mb-4 text-blue-700 border-b pb-2">İade Talepleriniz</h2>
-                    
+                <div className="bg-white rounded-xl shadow-md p-8">
+                    <h2 className="text-2xl font-semibold mb-4 text-gray-700">İade Geçmişim</h2>
                     {loadingHistory ? (
-                        <div className="flex justify-center items-center py-10">
-                            <FaSpinner className="animate-spin text-3xl text-blue-600" />
-                        </div>
+                        <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
                     ) : returnHistory.length === 0 ? (
-                        <div className="bg-yellow-50 p-4 rounded-md text-yellow-700">
-                            <p>Henüz iade talebiniz bulunmuyor.</p>
+                        <div className="text-center py-10 bg-gray-50 rounded-lg">
+                            <p className="text-gray-600">Daha önce oluşturulmuş bir iade talebiniz yok.</p>
                         </div>
                     ) : (
                         <div className="overflow-x-auto">
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Talep Tarihi
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Sipariş No
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Ürünler
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            Durum
-                                        </th>
-                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                            İşlemler
-                                        </th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Talep Tarihi</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sipariş No</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ürünler</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Durum</th>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">İşlemler</th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {returnHistory.map((returnItem) => (
                                         <tr key={returnItem._id} className="hover:bg-gray-50">
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                {new Date(returnItem.createdAt).toLocaleDateString('tr-TR')}
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{new Date(returnItem.createdAt).toLocaleDateString('tr-TR')}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{returnItem.order?.orderNumber || 'N/A'}</td>
+                                            <td className="px-6 py-4 text-sm text-gray-800">
+                                                {returnItem.products.map((prod, i) => (
+                                                    <div key={i}>{prod.product?.name || 'Bilinmeyen Ürün'} <span className="text-gray-500">x {prod.quantity}</span></div>
+                                                ))}
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                {returnItem.order?.orderNumber || 'N/A'}
+                                                <span className={`px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(returnItem.status)}`}>{getStatusText(returnItem.status)}</span>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <div className="text-sm text-gray-900">
-                                                    {returnItem.products.map((prod, i) => (
-                                                        <div key={i} className="mb-1">
-                                                            {prod.product?.name || 'Bilinmeyen Ürün'} 
-                                                            <span className="text-gray-500"> x {prod.quantity}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(returnItem.status)}`}>
-                                                    {getStatusText(returnItem.status)}
-                                                </span>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                                 {returnItem.status === 'Beklemede' && (
-                                                    <button
-                                                        onClick={() => handleCancelReturn(returnItem._id)}
-                                                        className="text-red-600 hover:text-red-900 font-medium text-sm"
-                                                    >
-                                                        İptal Et
-                                                    </button>
+                                                    <button onClick={() => handleCancelReturn(returnItem._id)} className="text-red-600 hover:text-red-800 transition">İptal Et</button>
                                                 )}
                                             </td>
                                         </tr>
