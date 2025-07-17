@@ -33,6 +33,10 @@ function SalesRepLayout() {
             <i className="fas fa-plus-circle"></i>
             <span>Yeni Sipariş</span>
           </NavLink>
+          <NavLink to="/portal/create-return">
+            <i className="fas fa-undo"></i>
+            <span>Müşteri İade Talebi</span>
+          </NavLink>
           <NavLink to="/portal/new-quote">
             <i className="fas fa-file-signature"></i>
             <span>Yeni Teklif</span>

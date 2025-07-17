@@ -43,6 +43,7 @@ import UserInfoPage from './pages/profile/UserInfoPage';
 import WishlistPage from './pages/profile/WishlistPage';
 import MyQuotesPage from './pages/profile/MyQuotesPage';
 import AccountStatementPage from './pages/profile/AccountStatementPage';
+import CreateReturnPage from './pages/customer/CreateReturnPage';
 
 // Admin Sayfaları
 import DashboardPage from './pages/admin/DashboardPage';
@@ -66,6 +67,8 @@ import QuoteEditPage from './pages/admin/QuoteEditPage';
 import BackordersPage from './pages/admin/BackordersPage';
 import PriceListPage from './pages/admin/PriceListPage';
 import PriceListEditPage from './pages/admin/PriceListEditPage';
+import ReturnListPage from './pages/admin/ReturnListPage';
+import ReturnDetailPage from './pages/admin/ReturnDetailPage'; // Bunu bir sonraki adımda oluşturacağız
 
 // Satış Temsilcisi Sayfaları
 import SalesRepDashboardPage from './pages/salesrep/SalesRepDashboardPage';
@@ -80,6 +83,7 @@ import AccountPage from './pages/supplier/AccountPage';
 import SalesRepOrderDetailPage from './pages/salesrep/OrderDetailPage';
 import PendingOrdersPage from './pages/salesrep/PendingOrdersPage';
 import CustomerStatementPage from './pages/salesrep/CustomerStatementPage';
+import CreateReturnForCustomerPage from './pages/salesrep/CreateReturnForCustomerPage';
 
 // Genel Stil Dosyası
 import './App.css';
@@ -187,6 +191,8 @@ const AppContent = () => {
                 <Route path="quote/:id" element={<QuoteEditPage />} />
                 <Route path="pricelists" element={<PriceListPage />} />
                 <Route path="pricelists/:id" element={<PriceListEditPage />} />
+                <Route path="returns" element={<ReturnListPage />} />
+                <Route path="return/:id" element={<ReturnDetailPage />} />
             </Route>
 
             {/* Supplier Routes with SupplierLayout */}
@@ -211,6 +217,7 @@ const AppContent = () => {
                 <Route path="new-order/:customerId" element={<NewOrderPage />} />
                 <Route path="new-quote" element={<NewQuotePage />} />
                 <Route path="cashbox" element={<CashboxPage />} />
+                <Route path="create-return" element={<CreateReturnForCustomerPage />} />
             </Route>
             
             {/* Main application routes with MainLayout */}
@@ -222,6 +229,7 @@ const AppContent = () => {
                     <Route path="quotes" element={<MyQuotesPage />} />
                     <Route path="wishlist" element={<WishlistPage />} />
                     <Route path="statement" element={<AccountStatementPage />} />
+                    <Route path="create-return" element={<CreateReturnPage />} />
                 </Route>
 
                 {/* Other main pages */}
