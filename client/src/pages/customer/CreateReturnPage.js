@@ -24,8 +24,10 @@ const CreateReturnPage = () => {
     useEffect(() => {
         const lowercasedFilter = searchTerm.toLowerCase();
         const filtered = purchasedProducts.filter(item => {
-            return item.product.name.toLowerCase().includes(lowercasedFilter) ||
-                   item.orderNumber.toLowerCase().includes(lowercasedFilter);
+            const productName = item.product?.name || '';
+            const orderNum = item.orderNumber || '';
+            return productName.toLowerCase().includes(lowercasedFilter) ||
+                   orderNum.toLowerCase().includes(lowercasedFilter);
         });
         setFilteredProducts(filtered);
     }, [searchTerm, purchasedProducts]);
