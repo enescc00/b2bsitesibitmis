@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FaBox, FaHistory, FaSpinner, FaSearch, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
+import { FaBox, FaHistory, FaSpinner, FaSearch, FaExclamationTriangle } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 import apiRequest from '../../utils/apiHelper';
 
@@ -14,18 +14,32 @@ const CreateReturnPage = () => {
     const [loading, setLoading] = useState(false);
     const [loadingProducts, setLoadingProducts] = useState(true);
     const [loadingHistory, setLoadingHistory] = useState(true);
+    const [error, setError] = useState(null);
 
     // Correctly construct image URLs with fallback when env variable is missing
     const baseApiUrl = ((process.env.REACT_APP_API_URL || window.location.origin).replace(/\/?api$/i, '')).replace(/\/$/, '');
+    
+    // Debug için console'a API URL bilgilerini yazdır
+    console.log('API URL Debug:', {
+        REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+        baseApiUrl: baseApiUrl,
+        origin: window.location.origin
+    });
+    
     const getImageUrl = (path) => {
-        if (!path) return 'https://placehold.co/150x150';
+        // Path yoksa veya geçersizse placeholder döndür
+        if (!path || path === 'undefined') return 'https://placehold.co/150x150';
+        
+        // Eğer path zaten tam URL ise doğrudan kullan
         if (path.startsWith('http')) return path;
-        // Ensure windows backslashes are converted to URL-friendly slashes
+        
+        // Windows backslash'leri URL dostu slash'lere dönüştür
         const cleanPath = path.replace(/\\/g, '/').replace(/^\//, '');
         return `${baseApiUrl}/${cleanPath}`;
     };
 
     useEffect(() => {
+        setError(null); // Her sekme değişikliğinde hata durumunu temizle
         if (activeTab === 'new') {
             fetchPurchasedItems();
         } else {
@@ -34,26 +48,65 @@ const CreateReturnPage = () => {
     }, [activeTab]);
 
     useEffect(() => {
-        const lowercasedFilter = searchTerm.toLowerCase();
-        const filtered = purchasedItems.filter(item => {
-            const productName = item.product?.name?.toLowerCase() || '';
-            const orderNum = item.orderNumber?.toLowerCase() || '';
-            return productName.includes(lowercasedFilter) || orderNum.includes(lowercasedFilter);
-        });
-        setFilteredItems(filtered);
+        try {
+            // Eğer purchasedItems geçerli bir array değilse, filtreleme yapma
+            if (!Array.isArray(purchasedItems)) {
+                setFilteredItems([]);
+                return;
+            }
+            
+            const lowercasedFilter = (searchTerm || '').toLowerCase();
+            const filtered = purchasedItems.filter(item => {
+                if (!item || !item.product) return false;
+                
+                const productName = (item.product.name || '').toLowerCase();
+                const orderNum = (item.orderNumber || '').toLowerCase();
+                return productName.includes(lowercasedFilter) || orderNum.includes(lowercasedFilter);
+            });
+            
+            setFilteredItems(filtered);
+        } catch (error) {
+            console.error('Filtreleme hatası:', error);
+            setFilteredItems([]);
+        }
     }, [searchTerm, purchasedItems]);
 
     const fetchPurchasedItems = async () => {
         setLoadingProducts(true);
+        setError(null);
         try {
-            const orders = await apiRequest('/orders/myorders?status=Tamamlandı').then(r => r.json());
-            const allItems = orders.flatMap(order =>
-                order.orderItems?.map(item => ({ ...item, orderDate: new Date(order.createdAt), orderNumber: order.orderNumber, orderId: order._id })) || []
-            );
+            const response = await apiRequest('/orders/myorders?status=Tamamlandı');
+            const orders = await response.json();
+            
+            console.log('Siparişler alındı:', orders);
+            
+            if (!Array.isArray(orders)) {
+                throw new Error('Sipariş verisi bir dizi değil: ' + JSON.stringify(orders));
+            }
+            
+            const allItems = orders.flatMap(order => {
+                if (!order || !order.orderItems) return [];
+                
+                return order.orderItems
+                    .filter(item => item && item.product) // Geçersiz öğeleri filtrele
+                    .map(item => ({
+                        ...item,
+                        orderDate: new Date(order.createdAt || Date.now()),
+                        orderNumber: order.orderNumber || 'Bilinmiyor', 
+                        orderId: order._id
+                    }));
+            });
+            
+            // Tarih sıralaması
             allItems.sort((a, b) => b.orderDate - a.orderDate);
             setPurchasedItems(allItems);
+            
+            console.log('İşlenen ürünler:', allItems);
         } catch (error) {
+            console.error('Sipariş verileri yüklenirken hata:', error);
             toast.error('Satın alınan ürünler yüklenirken bir hata oluştu.');
+            setError('Siparişler yüklenemedi. Lütfen daha sonra tekrar deneyin.');
+            setPurchasedItems([]);
         } finally {
             setLoadingProducts(false);
         }
@@ -61,11 +114,22 @@ const CreateReturnPage = () => {
 
     const fetchReturnHistory = async () => {
         setLoadingHistory(true);
+        setError(null);
         try {
-            const data = await apiRequest('/returns').then(r => r.json());
+            const response = await apiRequest('/returns');
+            const data = await response.json();
+            
+            if (!Array.isArray(data)) {
+                throw new Error('İade geçmişi verisi bir dizi değil: ' + JSON.stringify(data));
+            }
+            
             setReturnHistory(data);
+            console.log('İade geçmişi alındı:', data);
         } catch (error) {
+            console.error('İade geçmişi yüklenirken hata:', error);
             toast.error('İade geçmişi yüklenirken bir hata oluştu.');
+            setError('İade geçmişi yüklenemedi. Lütfen daha sonra tekrar deneyin.');
+            setReturnHistory([]);
         } finally {
             setLoadingHistory(false);
         }
@@ -73,29 +137,41 @@ const CreateReturnPage = () => {
 
     const handleReturnDataChange = (uniqueKey, field, value) => {
         setReturnData(prev => {
-            const currentItem = { ...prev[uniqueKey] };
-            const itemDetails = purchasedItems.find(p => `${p.orderId}-${p.product._id}` === uniqueKey);
-
-            if (field === 'quantity') {
-                const numValue = parseInt(value, 10);
-                if (isNaN(numValue) || numValue < 0) {
-                    value = 0;
-                } else if (numValue > itemDetails.quantity) {
-                    toast.warn(`En fazla ${itemDetails.quantity} adet iade edebilirsiniz.`);
-                    value = itemDetails.quantity;
+            try {
+                const currentItem = { ...prev[uniqueKey] };
+                // Güvenli bir şekilde itemDetails'i bul, bulamazsa null kullan
+                const itemDetails = purchasedItems.find(p => p && p.product && p.orderId && 
+                    `${p.orderId}-${p.product._id}` === uniqueKey);
+                
+                if (!itemDetails) {
+                    console.error('Ürün detayları bulunamadı:', uniqueKey);
+                    return prev; // Değişiklik yapma
                 }
-            }
-            
-            const updatedItem = { ...currentItem, [field]: value };
 
-            // If quantity is 0, remove the item from returnData
-            if (updatedItem.quantity === 0 || updatedItem.quantity === '') {
-                const newReturnData = { ...prev };
-                delete newReturnData[uniqueKey];
-                return newReturnData;
-            }
+                if (field === 'quantity') {
+                    const numValue = parseInt(value, 10);
+                    if (isNaN(numValue) || numValue < 0) {
+                        value = 0;
+                    } else if (numValue > itemDetails.quantity) {
+                        toast.warn(`En fazla ${itemDetails.quantity} adet iade edebilirsiniz.`);
+                        value = itemDetails.quantity;
+                    }
+                }
+                
+                const updatedItem = { ...currentItem, [field]: value };
 
-            return { ...prev, [uniqueKey]: updatedItem };
+                // If quantity is 0, remove the item from returnData
+                if (updatedItem.quantity === 0 || updatedItem.quantity === '') {
+                    const newReturnData = { ...prev };
+                    delete newReturnData[uniqueKey];
+                    return newReturnData;
+                }
+
+                return { ...prev, [uniqueKey]: updatedItem };
+            } catch (error) {
+                console.error('handleReturnDataChange hatası:', error);
+                return prev; // Hata durumunda mevcut state'i koru
+            }
         });
     };
 
@@ -114,26 +190,52 @@ const CreateReturnPage = () => {
 
         setLoading(true);
 
-        const returnsByOrder = Object.entries(returnData).reduce((acc, [uniqueKey, data]) => {
-            const orderId = uniqueKey.split('-')[0];
-            const productId = uniqueKey.split('-')[1];
-
-            if (!acc[orderId]) {
-                acc[orderId] = [];
-            }
-            acc[orderId].push({ 
-                product: productId, 
-                quantity: data.quantity, 
-                description: data.description 
-            });
-            return acc;
-        }, {});
-
         try {
+            const returnsByOrder = Object.entries(returnData).reduce((acc, [uniqueKey, data]) => {
+                try {
+                    // uniqueKey'in geçerli olduğundan emin ol
+                    if (!uniqueKey || !uniqueKey.includes('-')) {
+                        console.error('Geçersiz uniqueKey:', uniqueKey);
+                        return acc;
+                    }
+                    
+                    const [orderId, productId] = uniqueKey.split('-');
+                    
+                    if (!orderId || !productId) {
+                        console.error('Geçersiz orderId veya productId:', {orderId, productId});
+                        return acc;
+                    }
+
+                    if (!acc[orderId]) {
+                        acc[orderId] = [];
+                    }
+                    
+                    acc[orderId].push({ 
+                        product: productId, 
+                        quantity: parseInt(data.quantity, 10), 
+                        description: data.description 
+                    });
+                    
+                    return acc;
+                } catch (err) {
+                    console.error('returnsByOrder işlenirken hata:', err);
+                    return acc;
+                }
+            }, {});
+
+            console.log('İade verileri:', returnsByOrder);
+            
+            // Eğer hiç sipariş yoksa hata göster
+            if (Object.keys(returnsByOrder).length === 0) {
+                throw new Error('İade edilecek ürün bulunamadı');
+            }
+
             const returnPromises = Object.entries(returnsByOrder).map(([orderId, products]) => {
-                // The backend expects a single description, so we'll send the one from the first product.
-                // This might need backend adjustment if per-item descriptions are required.
+                // Her sipariş için ortak açıklama olarak ilk ürünün açıklamasını kullan
                 const description = products[0].description;
+                
+                console.log(`${orderId} için iade isteği gönderiliyor:`, {products, description});
+                
                 return apiRequest('/returns', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -148,8 +250,21 @@ const CreateReturnPage = () => {
             setSearchTerm('');
             setActiveTab('history');
         } catch (error) {
-            const errorData = await error.response?.json().catch(() => null);
-            toast.error(errorData?.msg || 'İade talebi oluşturulurken bir hata oluştu.');
+            console.error('İade gönderiminde hata:', error);
+            
+            let errorMessage = 'İade talebi oluşturulurken bir hata oluştu.';
+            
+            try {
+                // Hata yanıtını JSON olarak parse etmeye çalış
+                if (error.response) {
+                    const errorData = await error.response.json();
+                    errorMessage = errorData?.msg || errorMessage;
+                }
+            } catch (jsonError) {
+                console.error('JSON parse hatası:', jsonError);
+            }
+            
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }
@@ -192,8 +307,21 @@ const CreateReturnPage = () => {
                     <p className="text-gray-500 mb-6">Geçmiş siparişlerinizden iade etmek istediğiniz ürünlerin miktarını ve nedenini belirtin.</p>
                     {loadingProducts ? (
                         <div className="flex justify-center items-center py-16"><FaSpinner className="animate-spin text-4xl text-blue-500" /></div>
+                    ) : error ? (
+                        <div className="flex flex-col items-center justify-center py-10 bg-red-50 rounded-lg text-center">
+                            <FaExclamationTriangle className="text-red-500 text-3xl mb-2" />
+                            <p className="text-red-700">{error}</p>
+                            <button 
+                                onClick={() => fetchPurchasedItems()} 
+                                className="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                            >
+                                Yeniden Dene
+                            </button>
+                        </div>
                     ) : purchasedItems.length === 0 ? (
-                        <div className="text-center py-10 bg-gray-50 rounded-lg"><p className="text-gray-600">İade edilebilecek bir ürün bulunamadı.</p></div>
+                        <div className="text-center py-10 bg-gray-50 rounded-lg">
+                            <p className="text-gray-600">İade edilebilecek bir ürün bulunamadı.</p>
+                        </div>
                     ) : (
                         <form onSubmit={handleSubmit}>
                             <div className="mb-6">
@@ -216,7 +344,22 @@ const CreateReturnPage = () => {
                                             const isSelected = !!returnData[uniqueKey];
                                             return (
                                                 <tr key={uniqueKey} className={`${isSelected ? 'bg-green-50' : ''}`}>
-                                                    <td className="px-4 py-4"><img src={getImageUrl(item.product?.images?.[0])} alt={item.product.name} className="w-16 h-16 object-cover rounded-md bg-gray-100" onError={(e) => { e.target.onerror = null; e.target.src = 'https://placehold.co/150x150'; }} /></td>
+                                                    <td className="px-4 py-4">
+                                                        {/* Debug için resimlerin kaynak URL'ini göster */}
+                                                        {/* <div className="text-xs text-gray-400 mb-1">
+                                                            {item.product?.images?.[0] || 'Resim yok'}
+                                                        </div> */}
+                                                        <img 
+                                                            src={getImageUrl(item.product?.images?.[0])} 
+                                                            alt={item.product?.name} 
+                                                            className="w-16 h-16 object-cover rounded-md bg-gray-100" 
+                                                            onError={(e) => { 
+                                                                console.log('Resim yüklenemedi:', e.target.src);
+                                                                e.target.onerror = null; 
+                                                                e.target.src = 'https://placehold.co/150x150'; 
+                                                            }} 
+                                                        />
+                                                    </td>
                                                     <td className="px-4 py-4 align-top">
                                                         <p className="font-bold text-sm text-gray-900">{item.product.name}</p>
                                                         <p className="text-xs text-gray-500">Sipariş No: {item.orderNumber}</p>
