@@ -62,6 +62,7 @@ router.get('/', protect, async (req, res) => {
         const returns = await Return.find(query)
             .populate('customer', 'name companyName')
             .populate('order', 'orderNumber')
+            .populate('products.product', 'name images stockCode') // Ürün detaylarını ekle
             .sort({ createdAt: -1 });
             
         res.json(returns);
