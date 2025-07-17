@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-import api from '../../config/api';
+import apiRequest from '../../utils/apiHelper';
 import { toast } from 'react-toastify';
 
 const CreateReturnForCustomerPage = () => {
@@ -16,7 +16,7 @@ const CreateReturnForCustomerPage = () => {
         // Pazarlamacının müşterilerini getir
         const fetchCustomers = async () => {
             try {
-                const { data } = await api.get('/api/users/my-customers'); // Bu endpoint'in var olduğunu varsayıyoruz
+                const data = await apiRequest('/users/my-customers').then(r=>r.json()); // Bu endpoint'in var olduğunu varsayıyoruz
                 setCustomers(data);
             } catch (error) {
                 toast.error('Müşteriler getirilirken bir hata oluştu.');
@@ -35,7 +35,7 @@ const CreateReturnForCustomerPage = () => {
         setSelectedCustomer(customer);
         try {
             // Seçilen müşterinin tamamlanmış siparişlerini getir
-            const { data } = await api.get(`/api/orders/user/${customerId}?status=Tamamlandı`);
+            const data = await apiRequest(`/orders/user/${customerId}?status=Tamamlandı`).then(r=>r.json());
             setOrders(data);
         } catch (error) {
             toast.error('Müşterinin siparişleri getirilirken bir hata oluştu.');
@@ -82,11 +82,11 @@ const CreateReturnForCustomerPage = () => {
 
         setLoading(true);
         try {
-            await api.post('/api/returns', {
+            await apiRequest('/returns', { method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({
                 orderId: selectedOrder._id,
                 products: itemsToSubmit,
                 description
-            });
+            }) });
             toast.success('İade talebi başarıyla oluşturuldu.');
             // Formu sıfırla
             setSelectedOrder(null);

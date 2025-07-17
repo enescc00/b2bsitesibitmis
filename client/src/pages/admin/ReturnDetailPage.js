@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext } from '../../context/AuthContext';
-import api from '../../config/api';
+import apiRequest from '../../utils/apiHelper';
 import { toast } from 'react-toastify';
 
 const ReturnDetailPage = () => {
@@ -18,7 +18,7 @@ const ReturnDetailPage = () => {
 
     const fetchReturn = async () => {
         try {
-            const { data } = await api.get(`/api/returns/${id}`);
+            const data = await apiRequest(`/returns/${id}`).then(r=>r.json());
             setReturnRequest(data);
             setStatus(data.status);
             // Finansal işlem için ürünleri hazırla

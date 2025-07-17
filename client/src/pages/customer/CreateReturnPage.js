@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../config/api';
+import apiRequest from '../../utils/apiHelper';
 import { toast } from 'react-toastify';
 
 const CreateReturnPage = () => {
@@ -15,7 +15,7 @@ const CreateReturnPage = () => {
         const fetchOrders = async () => {
             try {
                 // Sadece tamamlanmış siparişleri getir
-                const { data } = await api.get('/api/orders/myorders?status=Tamamlandı');
+                const data = await apiRequest('/orders/myorders?status=Tamamlandı').then(r=>r.json());
                 setOrders(data);
             } catch (error) {
                 toast.error('Siparişleriniz getirilirken bir hata oluştu.');
@@ -65,10 +65,14 @@ const CreateReturnPage = () => {
 
         setLoading(true);
         try {
-            await api.post('/api/returns', {
-                orderId: selectedOrder._id,
-                products: itemsToSubmit,
-                description
+            await apiRequest('/returns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    orderId: selectedOrder._id,
+                    products: itemsToSubmit,
+                    description
+                })
             });
             toast.success('İade talebiniz başarıyla oluşturuldu.');
             // Formu sıfırla
