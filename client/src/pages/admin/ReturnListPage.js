@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import api from '../../config/api';
+import apiRequest from '../../utils/apiHelper';
 import { toast } from 'react-toastify';
 
 const ReturnListPage = () => {
@@ -10,7 +10,7 @@ const ReturnListPage = () => {
     useEffect(() => {
         const fetchReturns = async () => {
             try {
-                const { data } = await api.get('/api/returns');
+                const data = await apiRequest('/returns').then(r=>r.json());
                 setReturns(data);
             } catch (error) {
                 toast.error('İadeler getirilirken bir hata oluştu.');
