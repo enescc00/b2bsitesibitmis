@@ -214,7 +214,7 @@ function OrderDetailPage() {
                     <tbody>
                         {order.backorderedItems.map(item => (
                             <tr key={item.product}>
-                                <td className="item-info"><img src={item.image ? assetUrl(item.image) : (item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://via.placeholder.com/60x60?text=No+Image')} alt={item.name} className="order-item-img" /> <span>{item.name}</span></td>
+                                <td className="item-info"><img src={item.image ? assetUrl(item.image) : (item.images && item.images.length > 0 ? assetUrl(item.images[0]) : 'https://placehold.co/60x60?text=No+Image')} alt={item.name} className="order-item-img" /> <span>{item.name}</span></td>
                                 <td>{item.qty}</td>
                                 <td className="no-print">
                                     <button title="Siparişe Geri Ekle" className="action-btn" onClick={() => handleFulfillBackorder(item)}><i className="fas fa-undo"></i></button>

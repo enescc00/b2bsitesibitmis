@@ -52,7 +52,7 @@ function ProductCard({ product, onAddToCart }) {
                   className="product-card-image" 
                   src={product.images && product.images.length > imageIndex 
                     ? assetUrl(product.images[imageIndex]) 
-                    : 'https://via.placeholder.com/300?text=Görsel+Yok'} 
+                    : 'https://placehold.co/300?text=Görsel+Yok'} 
                   alt={product.name}
                   onError={() => {
                     // Resim yüklenemezse bir sonraki resmi dene
