@@ -23,7 +23,7 @@ const baseUserSchema = new Schema({
   role: {
       type: String,
       required: true,
-      enum: ['customer', 'admin', 'pazarlamaci', 'sevkiyat', 'muhasebe'],
+      enum: ['customer', 'admin', 'pazarlamaci', 'sevkiyat', 'muhasebe', 'sales_rep'],
       default: 'customer'
   },
   priceList: {
