@@ -144,17 +144,28 @@ router.post('/login', authLimiter, [
         return next(new ErrorHandler('Hesabınız henüz yönetici tarafından onaylanmadı.', 403));
     }
 
+    // Mongoose nesnelerini JSON'a çevirirken döngüsel referans hatasını önlemek için
+    // sadece gerekli alanları içeren güvenli bir payload oluşturuyoruz
+    
+    // Adresleri basit nesnelere dönüştür - döngüsel referansları önler
+    const safeAddresses = user.addresses ? user.addresses.map(addr => ({
+        addressTitle: addr.addressTitle,
+        province: addr.province,
+        district: addr.district,
+        fullAddress: addr.fullAddress
+    })) : [];
+    
     const payload = {
         user: {
             id: user.id,
             name: user.name,
             role: user.role,
-            addresses: user.addresses,
-            currentAccountBalance: user.currentAccountBalance
+            addresses: safeAddresses,
+            currentAccountBalance: user.currentAccountBalance ? user.currentAccountBalance : 0
         }
     };
 
-            if (!process.env.JWT_SECRET) {
+    if (!process.env.JWT_SECRET) {
         console.error('JWT_SECRET ortam değişkeni eksik!');
         return next(new ErrorHandler('Sunucu yapılandırması eksik (JWT_SECRET tanımsız).', 500));
     }
