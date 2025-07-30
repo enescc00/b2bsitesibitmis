@@ -12,7 +12,7 @@ export const API_BASE_URL = isProd ? PRODUCTION_URL : LOCAL_URL;
 console.log("API_BASE_URL:", API_BASE_URL);
 
 export const assetUrl = (path = "") => {
-  if (!path) return "";
+  if (!path) return "https://placehold.co/300?text=Görsel+Yok";
   if (path.includes("via.placeholder.com")) {
     return "https://placehold.co/300?text=Görsel+Yok";
   } // Eğer zaten mutlak bir URL ise (http veya https ile başlıyorsa) doğrudan döndür
