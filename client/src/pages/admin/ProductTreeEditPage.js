@@ -5,6 +5,7 @@ import { AuthContext } from "../../context/AuthContext";
 import { toast } from "react-toastify";
 import "./AdminForm.css";
 import "./ProductTreePage.css";
+import DropdownWithSearch from "./../../components/DropdownWithSearch";
 
 function ProductTreeEditPage() {
   const { id: treeId } = useParams();
@@ -202,40 +203,16 @@ function ProductTreeEditPage() {
       <div className="product-tree-grid">
         <div className="tree-builder-container">
           <h3>Parça Ekle</h3>
-          <div class="btn-group w-100 mb-3">
-            <button
-              type="button"
-              className="btn bg-white dropdown-toggle d-flex justify-content-between align-items-center w-100 border p-2"
-              data-bs-toggle="dropdown"
-              aria-expanded="false"
-            >
-              <span className="text-start text">Stoktan Parça Seç...</span>
-              <span className="dropdown-toggle-icon">
-                <i className="bi bi-caret-down-fill"></i>
+          <DropdownWithSearch
+            title="Stoktan Parça Seç..."
+            items={inventoryItems}
+            onClickList={handleAddItem}
+            renderListItem={(item) => (
+              <span>
+                {item.name} {item.itemCode}
               </span>
-            </button>
-            <ul className="dropdown-menu w-100 p-2">
-              <li>
-                <input
-                  className="w-100"
-                  placeholder="Arama Yap..."
-                  type="text"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
-                  autoFocus={true}
-                />
-              </li>
-              {filteredInventoryItems.map((item) => (
-                <li
-                  role="button"
-                  onClick={() => handleAddItem(item)}
-                  className="dropdown-item"
-                >
-                  {item.name} ({item.itemCode})
-                </li>
-              ))}
-            </ul>
-          </div>
+            )}
+          />
           <div className="admin-table-container">
             <table className="admin-table">
               <thead>
