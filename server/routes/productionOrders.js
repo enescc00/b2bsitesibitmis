@@ -3,7 +3,6 @@ const router = express.Router();
 const ProductionOrder = require("../models/ProductionOrder");
 const crypto = require("crypto");
 const InventoryItem = require("../models/InventoryItem");
-//const User = require("../models/User");
 const Product = require("../models/Product");
 
 const validateComponentsUsed = async (componentsUsed, quantityToProduce) => {
@@ -33,14 +32,6 @@ const validateComponentsUsed = async (componentsUsed, quantityToProduce) => {
   await Promise.all(inventoryItems);
 };
 
-// CHECK LATER
-// const validateUser = async (user) => {
-//   const userExists = await User.exists({ _id: user });
-//   if (!userExists) {
-//     throw new Error(`User with ID ${user} does not exist.`);
-//   }
-// };
-
 const validateProduct = async (product) => {
   const productExist = await Product.exists({ _id: product });
   if (!productExist) {
@@ -59,7 +50,6 @@ router.post("/", async (req, res) => {
     } = req.body;
 
     await validateComponentsUsed(componentsUsed, quantityToProduce);
-    //await validateUser(createdBy);
     await validateProduct(productToProduce);
     const orderNumber = crypto.randomInt(1000, 1000000);
 
@@ -73,6 +63,27 @@ router.post("/", async (req, res) => {
     });
 
     await newOrder.save();
+    const product = await Product.findById(productToProduce);
+    if (!product) {
+      throw new Error("Ürün bulunamadı.");
+    }
+    product.stock = (product.stock || 0) + +quantityToProduce;
+    await product.save();
+
+    for (const component of componentsUsed) {
+      const inventoryItem = await InventoryItem.findById(
+        component.inventoryItem
+      );
+
+      if (!inventoryItem) {
+        throw new Error("Envanter bulunamadı.");
+      }
+
+      inventoryItem.quantity =
+        (inventoryItem.quantity || 0) - +quantityToProduce * component.quantity;
+
+      await inventoryItem.save();
+    }
     res.status(201).json(newOrder);
   } catch (err) {
     console.error(err);
@@ -126,10 +137,6 @@ router.put("/:id", async (req, res) => {
     } = req.body;
 
     await validateComponentsUsed(componentsUsed, quantityToProduce);
-    // await validateUser(createdBy);
-    // if (completedBy !== null) {
-    //   await validateUser(completedBy);
-    // }
     await validateProduct(productToProduce);
 
     const updatedOrder = await ProductionOrder.findByIdAndUpdate(
