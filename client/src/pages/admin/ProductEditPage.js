@@ -29,6 +29,7 @@ function ProductEditPage() {
     salePrice: 0,
     stock: 0,
     isActive: true,
+    isManufactured: false,
   });
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -529,15 +530,31 @@ function ProductEditPage() {
             </div>
           </div>
         </div>
-        <div className="form-group form-group-checkbox">
-          <label htmlFor="isActive">Satışta Aktif mi?</label>
+        <div className="form-check">
           <input
             type="checkbox"
             id="isActive"
             name="isActive"
+            className="form-check-input"
             checked={formData.isActive}
             onChange={handleChange}
           />
+          <label htmlFor="isActive" className="fw-bold">
+            Satışta Aktif mi?
+          </label>
+        </div>
+        <div className="form-check">
+          <input
+            type="checkbox"
+            id="isManufactured"
+            name="isManufactured"
+            className="form-check-input"
+            checked={formData.isManufactured}
+            onChange={handleChange}
+          />
+          <label htmlFor="isManufactured" className="fw-bold">
+            Üretildi Mi?
+          </label>
         </div>
         <button type="submit" className="submit-btn" disabled={loading}>
           {isNewProduct ? "Ürünü Oluştur" : "Değişiklikleri Kaydet"}
