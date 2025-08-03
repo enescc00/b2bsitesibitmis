@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { IoCheckmarkDoneCircleSharp } from "react-icons/io5";
 import { IoIosCloseCircle } from "react-icons/io";
 import DropdownWithSearch from "./../../components/DropdownWithSearch";
 import { toast } from "react-toastify";
 
 export default function CreateProductionOrderPage() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [inventoryItems, setInventoryItems] = useState([]);
   const [user, setUser] = useState(null);
@@ -17,6 +19,7 @@ export default function CreateProductionOrderPage() {
     createdBy: "",
     completedBy: "",
     notes: "",
+    isDraft: false,
   });
   const {
     productToProduce,
@@ -26,6 +29,7 @@ export default function CreateProductionOrderPage() {
     createdBy,
     completedBy,
     notes,
+    isDraft,
   } = formData;
   const allStatus = [
     { _id: 0, name: "Planlandı" },
@@ -156,7 +160,8 @@ export default function CreateProductionOrderPage() {
       toast.error("Başarısız: Henüz geçerli bir ürün seçimi yapmadınız.");
       return;
     }
-    if (!isStocksEnough) {
+
+    if (!isStocksEnough && !isDraft) {
       toast.error("Başarısız: Stoklar yeterli değil.");
       return;
     }
@@ -199,6 +204,9 @@ export default function CreateProductionOrderPage() {
 
   return (
     <div className="admin-page-container">
+      <button onClick={() => navigate("/profile/orders")} className="back-btn">
+        &larr; Siparişlerim Sayfasına Dön
+      </button>
       <h1>Yeni İmalat Emri Oluştur</h1>
       <form>
         {renderDropdown("Üretilecek Ürün", productToProduce, products, (id) => {
@@ -221,159 +229,67 @@ export default function CreateProductionOrderPage() {
         </div>
         <div className="form-group">
           <label htmlFor="stocks">Stok Analizi</label>
-          {/* <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">
-                  <input
-                    type="checkbox"
-                    checked={componentsUsed.length === inventoryItems.length}
-                    onChange={() =>
-                      updateFormData(
-                        "componentsUsed",
-                        componentsUsed.length === inventoryItems.length
-                          ? []
-                          : inventoryItems.map((item) => ({
-                              inventoryItem: item._id,
-                              quantity: 1,
-                            }))
-                      )
-                    }
-                  />
-                </th>
-                <th scope="col">AD</th>
-                <th scope="col">Gereken Miktar</th>
-                <th scope="col">Mevcut Stok</th>
-                <th scope="col">Miktar</th>
-                <th scope="col">Durum</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inventoryItems.map((item) => (
-                <tr key={item._id}>
-                  <th scope="row">
-                    <input
-                      type="checkbox"
-                      checked={componentsUsed.some(
-                        (comp) => comp.inventoryItem === item._id
-                      )}
-                      onChange={() => handleComponentChange(item._id, 1)}
-                    />
-                  </th>
-                  <td>{item.name}</td>
-                  <td>{calculateRequiredQuantity(item)}</td>
-                  <td>{item.quantity}</td>
-                  <td>
-                    <input
-                      type="number"
-                      placeholder="Miktar"
-                      disabled={
-                        !componentsUsed.some(
-                          (componentItem) =>
-                            componentItem.inventoryItem === item._id
-                        )
-                      }
-                      value={
-                        componentsUsed.find(
-                          (componentItem) =>
-                            componentItem.inventoryItem === item._id
-                        )?.quantity
-                      }
-                      title={
-                        !componentsUsed.some(
-                          (componentItem) =>
-                            componentItem.inventoryItem === item._id
-                        ) && "Miktar eklemek için lütfen seçim yapınız."
-                      }
-                      onChange={(e) => {
-                        setFormData((prev) => {
-                          const updatedComponentsUsed = prev.componentsUsed.map(
-                            (compItem) =>
-                              compItem.inventoryItem === item._id
-                                ? { ...compItem, quantity: e.target.value }
-                                : compItem
-                          );
-
-                          return {
-                            ...prev,
-                            componentsUsed: updatedComponentsUsed,
-                          };
-                        });
-                      }}
-                    />
-                  </td>
-                  <td>
-                    {calculateRequiredQuantity(item) <= item.quantity ? (
-                      <span>
-                        <IoCheckmarkDoneCircleSharp color="green" size={20} />{" "}
-                        Yeterli
-                      </span>
-                    ) : (
-                      <span>
-                        <IoIosCloseCircle color="red" size={20} /> Yetersiz
-                      </span>
-                    )}
-                  </td>
+          <div className="table-responsive">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th scope="col">AD</th>
+                  <th scope="col">Gereken Miktar</th>
+                  <th scope="col">Miktar</th>
+                  <th scope="col">Mevcut Stok</th>
+                  <th scope="col">Durum</th>
                 </tr>
-              ))}
-            </tbody>
-          </table> */}
-          <table className="table">
-            <thead>
-              <tr>
-                <th scope="col">AD</th>
-                <th scope="col">Gereken Miktar</th>
-                <th scope="col">Miktar</th>
-                <th scope="col">Mevcut Stok</th>
-                <th scope="col">Durum</th>
-              </tr>
-            </thead>
-            <tbody>
-              {productTree ? (
-                inventoryItems.map((item) => (
-                  <tr key={item._id}>
-                    <td>{item.name}</td>
-                    <td>
-                      {quantityToProduce *
-                        productTree.components.find(
-                          (tree) => tree.inventoryItem._id === item._id
-                        ).quantity}
-                    </td>
-                    <td>
-                      {
-                        productTree.components.find(
-                          (tree) => tree.inventoryItem._id === item._id
-                        ).quantity
-                      }
-                    </td>
-                    <td>{item.quantity}</td>
-                    <td>
-                      {quantityToProduce *
-                        productTree.components.find(
-                          (tree) => tree.inventoryItem._id === item._id
-                        ).quantity <=
-                      item.quantity ? (
-                        <span>
-                          <IoCheckmarkDoneCircleSharp color="green" size={20} />{" "}
-                          Yeterli
-                        </span>
-                      ) : (
-                        <span>
-                          <IoIosCloseCircle color="red" size={20} /> Yetersiz
-                        </span>
-                      )}
+              </thead>
+              <tbody>
+                {productTree ? (
+                  inventoryItems.map((item) => (
+                    <tr key={item._id}>
+                      <td>{item.name}</td>
+                      <td>
+                        {quantityToProduce *
+                          productTree.components.find(
+                            (tree) => tree.inventoryItem._id === item._id
+                          ).quantity}
+                      </td>
+                      <td>
+                        {
+                          productTree.components.find(
+                            (tree) => tree.inventoryItem._id === item._id
+                          ).quantity
+                        }
+                      </td>
+                      <td>{item.quantity}</td>
+                      <td>
+                        {quantityToProduce *
+                          productTree.components.find(
+                            (tree) => tree.inventoryItem._id === item._id
+                          ).quantity <=
+                        item.quantity ? (
+                          <span>
+                            <IoCheckmarkDoneCircleSharp
+                              color="green"
+                              size={20}
+                            />{" "}
+                            Yeterli
+                          </span>
+                        ) : (
+                          <span>
+                            <IoIosCloseCircle color="red" size={20} /> Yetersiz
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={5}>
+                      <p>Henüz geçerli bir ürün seçimi yapmadınız.</p>
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={5}>
-                    <p>Henüz geçerli bir ürün seçimi yapmadınız.</p>
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
         <div className="form-group">
           <label htmlFor="status">Durum</label>
@@ -386,12 +302,6 @@ export default function CreateProductionOrderPage() {
             renderListItem={(item) => <span>{item.name}</span>}
           />
         </div>
-        {/*  {renderDropdown("Oluşturan Kullanıcı", createdBy, users, (id) =>
-          updateFormData("createdBy", id)
-        )}
-        {renderDropdown("Tamamlayan Kullanıcı", completedBy, users, (id) =>
-          updateFormData("completedBy", id)
-        )} */}
         <div className="form-group">
           <label htmlFor="status">Oluşturan Kullanıcı</label>
           <input placeholder={user?.name} type="text" disabled />
@@ -412,10 +322,24 @@ export default function CreateProductionOrderPage() {
             onChange={(e) => updateFormData("notes", e.target.value)}
           />
         </div>
+        <div className="form-check mb-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="isDraft"
+            name="isDraft"
+            onChange={(e) =>
+              setFormData((prev) => ({ ...prev, isDraft: !prev.isDraft }))
+            }
+          />
+          <label className="form-check-label fw-bold pl-5" htmlFor="isDraft">
+            Taslak Mı?
+          </label>
+        </div>
 
         <button
           type="submit"
-          className="btn btn-primary w-25"
+          className="btn btn-primary"
           onClick={checkAndPostData}
         >
           İmalat Emri Oluştur

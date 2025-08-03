@@ -27,7 +27,7 @@ const ProductTreeSchema = new Schema(
     },
     product: {
       type: Schema.Types.ObjectId,
-      required: true,
+      //required: true,
       ref: "Product",
     },
     components: [ComponentSchema],

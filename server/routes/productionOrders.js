@@ -47,6 +47,7 @@ router.post("/", async (req, res) => {
       componentsUsed,
       createdBy,
       notes,
+      isDraft,
     } = req.body;
 
     await validateComponentsUsed(componentsUsed, quantityToProduce);
@@ -60,6 +61,7 @@ router.post("/", async (req, res) => {
       componentsUsed,
       createdBy,
       notes,
+      isDraft,
     });
 
     await newOrder.save();
@@ -134,6 +136,7 @@ router.put("/:id", async (req, res) => {
       createdBy,
       completedBy,
       notes,
+      isDraft,
     } = req.body;
 
     await validateComponentsUsed(componentsUsed, quantityToProduce);
@@ -148,6 +151,7 @@ router.put("/:id", async (req, res) => {
         createdBy,
         completedBy,
         notes,
+        isDraft,
       },
       { new: true, runValidators: true }
     );

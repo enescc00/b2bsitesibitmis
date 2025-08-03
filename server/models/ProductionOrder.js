@@ -36,6 +36,7 @@ const ProductionOrderSchema = new Schema(
     completedBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
 
     notes: { type: String, default: "" },
+    isDraft: { type: Boolean, default: false },
   },
   {
     timestamps: true,
