@@ -17,6 +17,9 @@ dist/
 .env
 .env.*
 !.env.example
+server/config/config.env
+client/.env
+server/.env
 
 # Build output
 client/build/
