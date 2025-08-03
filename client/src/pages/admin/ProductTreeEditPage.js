@@ -56,14 +56,6 @@ function ProductTreeEditPage() {
     if (authToken) fetchInitialData();
   }, [authToken, treeId, isNewTree]);
 
-  const filteredInventoryItems = inventoryItems.filter((item) =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
   const handleAddItem = (item) => {
     const existingItem = components.find((comp) => comp._id === item._id);
     if (existingItem) {
