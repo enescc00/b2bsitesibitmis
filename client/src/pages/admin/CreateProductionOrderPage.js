@@ -204,8 +204,11 @@ export default function CreateProductionOrderPage() {
 
   return (
     <div className="admin-page-container">
-      <button onClick={() => navigate("/profile/orders")} className="back-btn">
-        &larr; Siparişlerim Sayfasına Dön
+      <button
+        onClick={() => navigate("/admin/manufacturing-module")}
+        className="back-btn"
+      >
+        &larr; İmalat Modülü Sayfasına Dön
       </button>
       <h1>Yeni İmalat Emri Oluştur</h1>
       <form>
