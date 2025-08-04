@@ -92,6 +92,7 @@ import PendingOrdersPage from "./pages/salesrep/PendingOrdersPage";
 import CustomerStatementPage from "./pages/salesrep/CustomerStatementPage";
 import CreateReturnForCustomerPage from "./pages/salesrep/CreateReturnForCustomerPage";
 import CreateProductionOrderPage from "./pages/admin/CreateProductionOrderPage";
+import ManufacturingModule from "./components/admin/ManufacturingModule";
 
 // Genel Stil Dosyası
 import "./App.css";
@@ -192,6 +193,7 @@ const AppContent = () => {
           path="create-production-order"
           element={<CreateProductionOrderPage />}
         />
+        <Route path="manufacturing-module" element={<ManufacturingModule />} />
         <Route path="orders/page/:pageNumber" element={<OrderListPage />} />
         <Route path="order/:id" element={<OrderDetailPage />} />
         <Route path="payments" element={<PaymentTrackingPage />} />
