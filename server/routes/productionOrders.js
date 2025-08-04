@@ -5,6 +5,27 @@ const crypto = require("crypto");
 const InventoryItem = require("../models/InventoryItem");
 const Product = require("../models/Product");
 
+const updateProductStock = async (productId, quantityToProduce) => {
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new Error("Ürün bulunamadı.");
+  }
+  product.stock = (product.stock || 0) + +quantityToProduce;
+  await product.save();
+};
+
+const updateInventoryItems = async (componentsUsed, quantityToProduce) => {
+  for (const component of componentsUsed) {
+    const inventoryItem = await InventoryItem.findById(component.inventoryItem);
+    if (!inventoryItem) {
+      throw new Error("Envanter bulunamadı.");
+    }
+    inventoryItem.quantity =
+      (inventoryItem.quantity || 0) - +quantityToProduce * component.quantity;
+    await inventoryItem.save();
+  }
+};
+
 const validateComponentsUsed = async (componentsUsed, quantityToProduce) => {
   const inventoryItems = componentsUsed.map(async (component) => {
     const item = await InventoryItem.findById(component.inventoryItem);
@@ -65,27 +86,9 @@ router.post("/", async (req, res) => {
     });
 
     await newOrder.save();
-    const product = await Product.findById(productToProduce);
-    if (!product) {
-      throw new Error("Ürün bulunamadı.");
-    }
-    product.stock = (product.stock || 0) + +quantityToProduce;
-    await product.save();
 
-    for (const component of componentsUsed) {
-      const inventoryItem = await InventoryItem.findById(
-        component.inventoryItem
-      );
-
-      if (!inventoryItem) {
-        throw new Error("Envanter bulunamadı.");
-      }
-
-      inventoryItem.quantity =
-        (inventoryItem.quantity || 0) - +quantityToProduce * component.quantity;
-
-      await inventoryItem.save();
-    }
+    await updateProductStock(productToProduce, quantityToProduce);
+    await updateInventoryItems(componentsUsed, quantityToProduce);
     res.status(201).json(newOrder);
   } catch (err) {
     console.error(err);
@@ -118,7 +121,7 @@ router.get("/:id", async (req, res) => {
       .populate("completedBy");
 
     if (!order) {
-      return res.status(404).json({ error: "Order not found" });
+      return res.status(404).json({ error: "Ürün bulunamadı." });
     }
 
     res.status(200).json(order);
@@ -157,12 +160,14 @@ router.put("/:id", async (req, res) => {
     );
 
     if (!updatedOrder) {
-      return res.status(404).json({ error: "Sipariş bulunamadı." });
+      return res.status(404).json({ error: "Ürün bulunamadı." });
     }
+
+    await updateProductStock(productToProduce, quantityToProduce);
+    await updateInventoryItems(componentsUsed, quantityToProduce);
 
     res.status(200).json(updatedOrder);
   } catch (err) {
-    console.error(err);
     res.status(400).json({ error: err.message });
   }
 });
@@ -174,11 +179,11 @@ router.delete("/:id", async (req, res) => {
     if (!deletedOrder) {
       return res.status(404).json({
         error:
-          "İlgili sipariş bulunamadı. Lütfen sipariş ID'sini kontrol edin ve tekrar deneyin.",
+          "İlgili ürün bulunamadı. Lütfen ürün ID'sini kontrol edin ve tekrar deneyin.",
       });
     }
 
-    res.status(200).json({ message: "Sipariş başarıyla silindi." });
+    res.status(200).json({ message: "Ürün başarıyla silindi." });
   } catch (err) {
     res.status(500).json({ error: "Bir hata oluştu." });
   }
