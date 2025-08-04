@@ -33,7 +33,7 @@
 
 .filter-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Default state for Tümü button */
@@ -62,11 +62,17 @@
   border-color: #fecaca;
 }
 
+.filter-btn-taslaklar {
+  background-color: #1a1c38;
+  color: white;
+  border-color: white;
+}
+
 /* --- Active States --- */
 .filter-btn.active {
   color: #ffffff;
   transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 .filter-btn-tumu.active {
@@ -134,7 +140,7 @@
   font-size: 0.9rem;
   font-weight: 500;
   color: #374151;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
 }
 
 .order-status {
@@ -152,11 +158,31 @@
 }
 
 /* New Status Colors & Styles */
-.status-onay-bekliyor { background-color: #fef3c7; color: #92400e; } /* Amber */
-.status-hazırlanıyor { background-color: #dbeafe; color: #1e40af; } /* Blue */
-.status-kargoya-verildi { background-color: #e0e7ff; color: #3730a3; } /* Indigo */
-.status-teslim-edildi { background-color: #d1fae5; color: #065f46; } /* Green */
-.status-iptal-edildi { background-color: #fee2e2; color: #991b1b; } /* Red */
+.status-onay-bekliyor {
+  background-color: #fef3c7;
+  color: #92400e;
+} /* Amber */
+.status-hazırlanıyor {
+  background-color: #dbeafe;
+  color: #1e40af;
+} /* Blue */
+.status-kargoya-verildi {
+  background-color: #e0e7ff;
+  color: #3730a3;
+} /* Indigo */
+.status-teslim-edildi {
+  background-color: #d1fae5;
+  color: #065f46;
+} /* Green */
+.status-iptal-edildi {
+  background-color: #fee2e2;
+  color: #991b1b;
+} /* Red */
+
+.status-taslaklar {
+  background-color: black;
+  color: white;
+}
 
 /* Backordered badge */
 .badge-backordered {
@@ -189,7 +215,6 @@
   text-decoration: underline;
 }
 
-
 .order-body {
   padding: 1.5rem;
 }
@@ -215,7 +240,19 @@
 }
 
 .order-footer strong {
-  color: #4f46e5; /* Match active button color */
+  color: #4f46e5;
+}
+
+.order-footer .order-footer-button {
+  background-color: #10b981;
+  color: white;
+  border: none;
+}
+
+.order-footer .order-footer-button:disabled {
+  background-color: #d1d5db;
+  color: #9ca3af;
+  cursor: not-allowed;
 }
 
 .no-orders-message {
