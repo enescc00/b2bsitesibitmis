@@ -126,7 +126,7 @@ function MyOrdersPage() {
     <div className="my-orders-page">
       <h1>Siparişlerim</h1>
 
-      <div className="order-filters d-flex justify-content-between align-items-center">
+      <div className="order-filters">
         {filterButtons.map((filter) => (
           <button
             key={filter}
@@ -138,12 +138,6 @@ function MyOrdersPage() {
             {filter}
           </button>
         ))}
-        <Link
-          to="/admin/create-production-order"
-          className="text-center bg-primary text-white py-2 px-3 rounded"
-        >
-          İmalat Emri Oluştur
-        </Link>
       </div>
 
       <div className="order-list">
