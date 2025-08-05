@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
-import './AdminLayout.css';
+import React, { useState } from "react";
+import { NavLink, Outlet } from "react-router-dom";
+import "./AdminLayout.css";
 
 function AdminLayout() {
   const [isCatalogOpen, setIsCatalogOpen] = useState(true);
@@ -36,14 +36,25 @@ function AdminLayout() {
             <i className="fas fa-undo"></i>
             <span>İade Yönetimi</span>
           </NavLink>
-          
+          <NavLink to="/admin/manufacturing-module" className="sidebar-link">
+            <i className="fa fa-briefcase"></i>
+            <span>İmalat Modülü</span>
+          </NavLink>
+
           <hr className="sidebar-divider" />
 
           <div className="sidebar-menu-item">
-            <button onClick={() => setIsCatalogOpen(!isCatalogOpen)} className="sidebar-link collapsible">
+            <button
+              onClick={() => setIsCatalogOpen(!isCatalogOpen)}
+              className="sidebar-link collapsible"
+            >
               <i className="fas fa-book-open"></i>
               <span>Katalog</span>
-              <i className={`fas fa-chevron-down dropdown-icon ${isCatalogOpen ? 'open' : ''}`}></i>
+              <i
+                className={`fas fa-chevron-down dropdown-icon ${
+                  isCatalogOpen ? "open" : ""
+                }`}
+              ></i>
             </button>
             {isCatalogOpen && (
               <div className="collapsible-content">
@@ -51,15 +62,24 @@ function AdminLayout() {
                   <i className="fas fa-tshirt"></i>
                   <span>Satış Ürünleri</span>
                 </NavLink>
-                <NavLink to="/admin/product-trees" className="sidebar-link sub-link">
+                <NavLink
+                  to="/admin/product-trees"
+                  className="sidebar-link sub-link"
+                >
                   <i className="fas fa-sitemap"></i>
                   <span>Ürün Ağaçları</span>
                 </NavLink>
-                <NavLink to="/admin/inventory" className="sidebar-link sub-link">
+                <NavLink
+                  to="/admin/inventory"
+                  className="sidebar-link sub-link"
+                >
                   <i className="fas fa-cubes"></i>
                   <span>Stok Yönetimi</span>
                 </NavLink>
-                <NavLink to="/admin/categories" className="sidebar-link sub-link">
+                <NavLink
+                  to="/admin/categories"
+                  className="sidebar-link sub-link"
+                >
                   <i className="fas fa-folder-open"></i>
                   <span>Kategoriler</span>
                 </NavLink>
@@ -82,7 +102,12 @@ function AdminLayout() {
             <span>Ayarlar</span>
           </NavLink>
 
-          <a href="/" target="_blank" rel="noopener noreferrer" className="sidebar-link store-link">
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sidebar-link store-link"
+          >
             <i className="fas fa-store"></i>
             <span>Mağazayı Görüntüle</span>
           </a>
