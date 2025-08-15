@@ -53,10 +53,13 @@ const validateComponentsUsed = async (componentsUsed, quantityToProduce) => {
   await Promise.all(inventoryItems);
 };
 
-const validateProduct = async (product) => {
-  const productExist = await Product.exists({ _id: product });
-  if (!productExist) {
-    throw new Error(`ID'si ${product} olan ürün bulunamadı.`);
+const validateProduct = async (productId) => {
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new Error(`ID'si ${productId} olan ürün bulunamadı.`);
+  }
+  if (!product?.isManufactured) {
+    throw new Error(`ID'si ${productId} olan ürün henüz üretilmemiştir.`);
   }
 };
 
