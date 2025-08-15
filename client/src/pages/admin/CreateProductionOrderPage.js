@@ -1,17 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useNavigate } from "react-router-dom";
-import { IoCheckmarkDoneCircleSharp } from "react-icons/io5";
-import { IoIosCloseCircle } from "react-icons/io";
-import DropdownWithSearch from "./../../components/DropdownWithSearch";
 import { toast } from "react-toastify";
+import { ProductTreeDropdown } from "../../components/ProductTreeDropdown";
+import DropdownWithSearch from "../../components/DropdownWithSearch";
+import { useProductionOrderData } from "./../../hooks/useProductionOrderData";
+import { useProductionOrderFormData } from "./../../hooks/useProductionOrderFormData";
+import { ProductionOrderStockTable } from "./../../components/ProductionOrderStockTable";
+import { isProductionOrderStockSufficient } from "./../../utils/helpers";
+
+const STATUS_OPTIONS = [
+  { _id: 0, name: "Planlandı" },
+  { _id: 1, name: "İmalatta" },
+  { _id: 2, name: "Tamamlandı" },
+  { _id: 3, name: "İptal Edildi" },
+];
 
 export default function CreateProductionOrderPage() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([]);
-  const [inventoryItems, setInventoryItems] = useState([]);
-  const [user, setUser] = useState(null);
-  const [productTree, setProductTree] = useState(null);
-  const [formData, setFormData] = useState({
+
+  const { formData, update, setFormData } = useProductionOrderFormData({
     productToProduce: "",
     quantityToProduce: 1,
     componentsUsed: [],
@@ -21,184 +28,51 @@ export default function CreateProductionOrderPage() {
     notes: "",
     isDraft: false,
   });
+
   const {
-    productToProduce,
-    quantityToProduce,
-    componentsUsed,
-    status,
-    createdBy,
-    completedBy,
-    notes,
-    isDraft,
-  } = formData;
-  const allStatus = [
-    { _id: 0, name: "Planlandı" },
-    { _id: 1, name: "İmalatta" },
-    { _id: 2, name: "Tamamlandı" },
-    { _id: 3, name: "İptal Edildi" },
-  ];
+    user,
+    productTrees,
+    inventoryItems,
+    selectedProductTree,
+    setSelectedProductTree,
+    fetchInventoryForTree,
+  } = useProductionOrderData(setFormData);
 
-  useEffect(() => {
-    const fetchProductsData = async () => {
-      try {
-        const [productResponse, userResponse] = await Promise.all([
-          fetch("/api/products/all"),
-          fetch("/api/users/profile"),
-        ]);
-
-        if (!productResponse.ok || !userResponse.ok) {
-          throw new Error(
-            "Bir veya daha fazla API'den veri alınırken bir hata oluştu."
-          );
-        }
-
-        const productData = await productResponse.json();
-        const userData = await userResponse.json();
-
-        setProducts(
-          productData.products.filter((product) => product.isManufactured)
-        );
-        setUser(userData);
-        setFormData((prev) => ({
-          ...prev,
-          createdBy: userData._id,
-          completedBy: userData._id,
-        }));
-      } catch (err) {
-        toast.error(`Veri çekilirken bir hata oluştu: ${err.message}`);
-      } finally {
-      }
-    };
-
-    fetchProductsData();
-  }, []);
-
-  const updateFormData = (key, value) =>
-    setFormData((prev) => ({ ...prev, [key]: value }));
-
-  const renderDropdown = (label, value, items, onSelect) => (
-    <div className="form-group">
-      <label>{label}</label>
-      <DropdownWithSearch
-        title={
-          value ? items.find((item) => item._id === value)?.name : `${label}`
-        }
-        items={items}
-        onClickList={(item) => onSelect(item._id)}
-        renderListItem={(item) => <span>{item.name}</span>}
-      />
-    </div>
-  );
-
-  const getProductTreeAndInventoryItems = async (selectedProductId) => {
-    try {
-      const [inventoryResponse, productTreeResponse] = await Promise.all([
-        fetch("/api/inventory"),
-        fetch("/api/product-trees"),
-      ]);
-
-      if (!inventoryResponse.ok || !productTreeResponse.ok) {
-        throw new Error(
-          "Bir veya daha fazla API'den veri alınırken bir hata oluştu."
-        );
-      }
-
-      const inventoryData = await inventoryResponse.json();
-      const productTreeData = await productTreeResponse.json();
-      const findRelatedProductTree = productTreeData.find(
-        (item) => item.product?._id === selectedProductId
-      );
-      if (findRelatedProductTree) {
-        const getNecessaryInventoryData = inventoryData.filter((item) =>
-          findRelatedProductTree.components
-            .map((item) => item.inventoryItem._id)
-            .includes(item?._id)
-        );
-        setProductTree(findRelatedProductTree);
-        setInventoryItems(getNecessaryInventoryData);
-        setFormData((prev) => ({
-          ...prev,
-          componentsUsed: findRelatedProductTree.components.map((item) => ({
-            inventoryItem: item.inventoryItem._id,
-            quantity: item.quantity,
-          })),
-        }));
-      } else {
-        setProductTree(null);
-        setInventoryItems([]);
-        setFormData((prev) => ({
-          ...prev,
-          componentsUsed: [],
-        }));
-      }
-    } catch (err) {
-      toast.error(`Veri çekilirken bir hata oluştu: ${err.message}`);
-    } finally {
-    }
-  };
-
-  const checkAndPostData = async (e) => {
+  const submitOrder = async (e) => {
     e.preventDefault();
 
-    const isStocksEnough = componentsUsed.every((item) => {
-      const inventoryItem = inventoryItems.find(
-        (inventoryItem) => inventoryItem._id === item.inventoryItem
-      );
-
-      return item.quantity * quantityToProduce <= inventoryItem.quantity;
-    });
-    if (!productToProduce) {
-      toast.error("Başarısız: Lütfen bir ürün seçiniz.");
-      return;
-    }
-
-    if (!createdBy) {
-      toast.error("Başarısız: Lütfen ürünü oluşturan kullanıcıyı seçiniz.");
-      return;
-    }
-    if (!productTree) {
-      toast.error("Başarısız: Henüz geçerli bir ürün seçimi yapmadınız.");
-      return;
-    }
-
-    if (!isStocksEnough && !isDraft) {
-      toast.error("Başarısız: Stoklar yeterli değil.");
-      return;
-    }
-
-    const data = {
-      ...formData,
-    };
+    if (!formData.productToProduce) return toast.error("Ürün seçiniz.");
+    if (!formData.createdBy) return toast.error("Oluşturan kullanıcı yok.");
+    if (!selectedProductTree) return toast.error("Geçerli ürün yok.");
+    if (
+      !isProductionOrderStockSufficient(
+        formData.componentsUsed,
+        inventoryItems,
+        formData.quantityToProduce
+      ) &&
+      !formData.isDraft
+    )
+      return toast.error("Stoklar yetersiz.");
 
     try {
-      const response = await fetch("/api/production-orders", {
+      const res = await fetch("/api/production-orders", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Bir hata oluştu");
-      }
-
-      toast.success("Üretim emri başarıyla oluşturuldu!");
-      setFormData({
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Hata oluştu");
+      toast.success("Üretim emri oluşturuldu");
+      setFormData((prev) => ({
+        ...prev,
         productToProduce: "",
         quantityToProduce: 1,
         componentsUsed: [],
-        status: "Planlandı",
         notes: "",
-        createdBy: user._id,
-        completedBy: user._id,
-      });
-      setProductTree(null);
-    } catch (error) {
-      toast.error(`Hata: ${error.message}`);
-      console.error("Üretim oluşturulurken hata oluştu:", error);
+      }));
+      setSelectedProductTree(null);
+    } catch (err) {
+      toast.error(`Hata: ${err.message}`);
     }
   };
 
@@ -210,101 +84,61 @@ export default function CreateProductionOrderPage() {
       >
         &larr; İmalat Modülü Sayfasına Dön
       </button>
-      <h1>Yeni İmalat Emri Oluştur</h1>
-      <form>
-        {renderDropdown("Üretilecek Ürün", productToProduce, products, (id) => {
-          updateFormData("productToProduce", id);
-          getProductTreeAndInventoryItems(id);
-        })}
+      <h1>Yeni İmalat Emri</h1>
+      <form onSubmit={submitOrder}>
+        <ProductTreeDropdown
+          label="Ürün Ağacı"
+          items={productTrees}
+          selected={selectedProductTree}
+          onSelect={(item) => {
+            update("productToProduce", item?.product?._id);
+            fetchInventoryForTree(item);
+            setSelectedProductTree(item);
+          }}
+        />
+
+        {selectedProductTree?.product && (
+          <div className="form-group">
+            <label htmlFor="quantityToProduce">Seçilen ürün:</label>
+            <div>
+              {selectedProductTree.product.images.length && (
+                <img
+                  src={selectedProductTree.product.images[0]}
+                  width={100}
+                  height={100}
+                />
+              )}
+              <h6>{selectedProductTree.product.name}</h6>
+            </div>
+          </div>
+        )}
 
         <div className="form-group">
           <label htmlFor="quantityToProduce">Üretilecek Miktar</label>
           <input
             type="number"
+            min={1}
             className="form-control"
             id="quantityToProduct"
             placeholder="Üretilecek Miktar"
-            value={quantityToProduce}
-            onChange={(e) =>
-              updateFormData("quantityToProduce", e.target.value)
-            }
+            value={formData.quantityToProduce}
+            onChange={(e) => update("quantityToProduce", e.target.value)}
           />
         </div>
-        <div className="form-group">
-          <label htmlFor="stocks">Stok Analizi</label>
-          <div className="table-responsive">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th scope="col">AD</th>
-                  <th scope="col">Gereken Miktar</th>
-                  <th scope="col">Miktar</th>
-                  <th scope="col">Mevcut Stok</th>
-                  <th scope="col">Durum</th>
-                </tr>
-              </thead>
-              <tbody>
-                {productTree ? (
-                  inventoryItems.map((item) => (
-                    <tr key={item._id}>
-                      <td>{item.name}</td>
-                      <td>
-                        {quantityToProduce *
-                          productTree.components.find(
-                            (tree) => tree.inventoryItem._id === item._id
-                          ).quantity}
-                      </td>
-                      <td>
-                        {
-                          productTree.components.find(
-                            (tree) => tree.inventoryItem._id === item._id
-                          ).quantity
-                        }
-                      </td>
-                      <td>{item.quantity}</td>
-                      <td>
-                        {quantityToProduce *
-                          productTree.components.find(
-                            (tree) => tree.inventoryItem._id === item._id
-                          ).quantity <=
-                        item.quantity ? (
-                          <span>
-                            <IoCheckmarkDoneCircleSharp
-                              color="green"
-                              size={20}
-                            />{" "}
-                            Yeterli
-                          </span>
-                        ) : (
-                          <span>
-                            <IoIosCloseCircle color="red" size={20} /> Yetersiz
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5}>
-                      <p>Henüz geçerli bir ürün seçimi yapmadınız.</p>
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-        <div className="form-group">
-          <label htmlFor="status">Durum</label>
-          <DropdownWithSearch
-            title={status}
-            items={allStatus}
-            onClickList={(item) => {
-              setFormData((prev) => ({ ...prev, status: item.name }));
-            }}
-            renderListItem={(item) => <span>{item.name}</span>}
-          />
-        </div>
+
+        <ProductionOrderStockTable
+          tree={selectedProductTree}
+          inventoryItems={inventoryItems}
+          quantity={formData.quantityToProduce}
+        />
+
+        <DropdownWithSearch
+          title={formData.status}
+          items={STATUS_OPTIONS}
+          onClickList={(item) => update("status", item.name)}
+          renderListItem={(item) => <span>{item.name}</span>}
+        />
+
         <div className="form-group">
           <label htmlFor="status">Oluşturan Kullanıcı</label>
           <input placeholder={user?.name} type="text" disabled />
@@ -321,8 +155,8 @@ export default function CreateProductionOrderPage() {
             className="form-control"
             id="notes"
             placeholder="Not gir"
-            value={notes}
-            onChange={(e) => updateFormData("notes", e.target.value)}
+            value={formData.notes}
+            onChange={(e) => update("notes", e.target.value)}
           />
         </div>
         <div className="form-check mb-3">
@@ -331,20 +165,15 @@ export default function CreateProductionOrderPage() {
             type="checkbox"
             id="isDraft"
             name="isDraft"
-            onChange={(e) =>
-              setFormData((prev) => ({ ...prev, isDraft: !prev.isDraft }))
-            }
+            checked={formData.isDraft}
+            onChange={() => update("isDraft", !formData.isDraft)}
           />
           <label className="form-check-label fw-bold pl-5" htmlFor="isDraft">
             Taslak Mı?
           </label>
         </div>
 
-        <button
-          type="submit"
-          className="btn btn-primary"
-          onClick={checkAndPostData}
-        >
+        <button type="submit" className="btn btn-primary">
           İmalat Emri Oluştur
         </button>
       </form>
