@@ -44,6 +44,7 @@ import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import Kampanya from "./pages/Kampanya";
 
 // Profil Sayfaları
 import MyOrdersPage from "./pages/profile/MyOrdersPage";
@@ -178,6 +179,7 @@ const AppContent = () => {
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
       <Route path="/maintenance" element={<MaintenancePage />} />
+      <Route path="/kampanya" element={<Kampanya />} />
 
       {/* Admin Routes with AdminLayout */}
       <Route
